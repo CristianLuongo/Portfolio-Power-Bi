@@ -47,10 +47,10 @@ let
                                     ),
                                 
                                 // Eliminar filas donde el ID de operación sea literalmente "operación" (encabezado duplicado)
-                                LimpiarFilas = Table.SelectRows(
+                                LimpiarFilas = try Table.SelectRows(
                                     RenombrarCol, 
                                     each ([#"ID de la operación"] <> "operación") and ([Fecha] <> "Fecha")
-                                ),
+                                ) otherwise RenombrarCol,
                                 
                                 // Reemplazar valores nulos en la columna Descripción con espacios en blanco
                                 ReemplazarNull = Table.ReplaceValue(
