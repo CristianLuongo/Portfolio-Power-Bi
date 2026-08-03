@@ -97,7 +97,7 @@ let
                 {"Fecha", "Descripción", "ID de la operación"},
                 Combiner.CombineTextByDelimiter("", QuoteStyle.None),
                 "Combinada",
-                MissingField.UseNull
+                MissingField.Ignore
             ),
             
             // Primera división: separar fecha (primeros 10 caracteres) del resto
