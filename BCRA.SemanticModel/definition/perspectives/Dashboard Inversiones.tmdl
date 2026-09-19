@@ -1,0 +1,29 @@
+/// Vista especializada para analisis de decisiones de inversion
+perspective 'Dashboard Inversiones'
+
+	perspectiveTable Medidas
+
+		perspectiveMeasure 'Spread Tasas Active-Pasivas'
+
+		perspectiveMeasure 'Momentum Corto Plazo'
+
+		perspectiveMeasure 'Momentum Largo Plazo'
+
+		perspectiveMeasure 'Tendencia General'
+
+		perspectiveMeasure 'Promedio 30 Dias'
+
+		perspectiveMeasure 'Promedio 90 Dias'
+
+		perspectiveMeasure 'Variacion % Mensual'
+
+		perspectiveMeasure AlertaTasas
+
+		perspectiveMeasure 'Margen Financiero Real'
+
+		perspectiveMeasure 'Presion Liquidez'
+
+	perspectiveTable BCRA_Principales_Variables
+
+	perspectiveTable Calendario
+

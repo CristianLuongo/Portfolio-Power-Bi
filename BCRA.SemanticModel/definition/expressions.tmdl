@@ -1,0 +1,727 @@
+expression Call_LLM_API = ```
+		let
+		    // Se define la función con un segundo parámetro opcional "model"
+		    CallLLMAPI = (prompt as text, optional model as text) =>
+		    let
+		        // Si no se pasa "model", se usa "llama3.2:latest" por defecto
+		        SelectedModel = if model <> null then model else "gemma3:latest",
+		
+		        // URL del endpoint de la API local
+		        url = "http://localhost:11434/api/generate",
+		
+		        // Construcción del cuerpo JSON dinámico
+		        requestBody = "{""model"": """ & SelectedModel & """, ""prompt"": """ & 
+		                        Text.Replace(prompt, """", "\""") & 
+		                        """, ""stream"": false}",
+		
+		        // Intentamos realizar la llamada HTTP POST a la API
+		        SafeSource = try Web.Contents(
+		            url,
+		            [
+		                Headers = [
+		                    #"Content-Type" = "application/json"
+		                ],
+		                Content = Text.ToBinary(requestBody),
+		                ManualStatusHandling = {200..299}
+		            ]
+		        ) otherwise null,
+		
+		        // Verificamos si hubo error en la llamada
+		        ResponseBinary = if SafeSource <> null then Binary.Buffer(SafeSource) else null,
+		
+		        // Convertimos la respuesta binaria a texto si no es null
+		        ResponseText = if ResponseBinary <> null then Text.FromBinary(ResponseBinary, TextEncoding.Utf8) else "Error: No se pudo conectar con la API.",
+		
+		        // Intentamos parsear el JSON
+		        SafeJson = try Json.Document(ResponseText) otherwise [response = "Error al interpretar la respuesta JSON."],
+		
+		        // Extraemos el campo 'response'
+		        RawResponse = Record.FieldOrDefault(SafeJson, "response", "Campo 'response' no encontrado."),
+		
+		        // Limpiamos espacios
+		        CleanResponse = Text.Trim(RawResponse)
+		    in
+		        CleanResponse,
+		
+		    // Documentación de la función
+		    Documentacion = type function (
+		        prompt as text, 
+		        optional model as text
+		    ) as text meta [
+		        Documentation.Name = "Call_LLM_API",
+		        Documentation.LongDescription = 
+		        "La función Call_LLM_API permite enviar un 'prompt' a un modelo Ollama desde Power Query. 
+		        Parámetros:
+		        - prompt (obligatorio): Texto a enviar.
+		        - model (opcional): Modelo de Ollama a utilizar (por defecto: llama3.2:latest).
+		
+		        Devuelve la respuesta del modelo o un mensaje de error.",
+		        Documentation.Examples = {
+		            [
+		                Description = "Ejemplo básico: usar el modelo por defecto.",
+		                Code = "
+		                let
+		                    Prompt = ""¿Cuál es la capital de Francia?"",
+		                    Resultado = Call_LLM_API(Prompt)
+		                in
+		                    Resultado
+		                ",
+		                Result = "'París'"
+		            ],
+		            [
+		                Description = "Ejemplo con modelo explícito.",
+		                Code = "
+		                let
+		                    Prompt = ""Resume el Quijote en 3 líneas."",
+		                    Resultado = Call_LLM_API(Prompt, ""llama3.1"")
+		                in
+		                    Resultado
+		                ",
+		                Result = "'Resumen generado por llama3.1'"
+		            ]
+		        },
+		        Documentation.Category = "Text",
+		        Documentation.Source = "Local",
+		        Documentation.Author = "Cristian Luongo"
+		    ]
+		in
+		    Value.ReplaceType(CallLLMAPI, Documentacion)
+		```
+	lineageTag: e4fb4cb0-1fbf-4e9b-bd73-6463f1958500
+	queryGroup: Aux
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Function
+
+expression Consulta_BCRA = ```
+		(offset, FechaDesde, FechaHasta) =>
+		let
+		   Source = 
+		     Json.Document(
+		       Web.Contents(
+		         "https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/" 
+		            & Number.ToText( offset ) & "?Desde="&FechaDesde&"&Hasta="&FechaHasta
+		      ) 
+		    )
+		in
+		    Source
+		```
+	lineageTag: 9359df08-d9c3-4b9c-be78-4eb8b81bcdc6
+	queryGroup: Aux
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Function
+
+expression Periodo = 2026 meta [IsParameterQuery=true, Type="Number", IsParameterQueryRequired=true]
+	lineageTag: 00b5d49e-44a2-4461-8991-b98ac43d64da
+	queryGroup: Aux
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Number
+
+expression Consulta_BCRA_V2 = ```
+		(offset as text, FechaDesde as date, FechaHasta as date) =>
+		let
+		    FormatNumber = Text.Split( offset, ",") ,
+		    Call_API = 
+		    List.Generate(
+		        ()=>[Offset = FormatNumber, Index= 0],
+		        each [Index] < List.Count([Offset]),
+		        each [ 
+		            Offset = [Offset], 
+		            Index = [Index]+1
+		        ],
+		        each Json.Document(
+		       Web.Contents(
+		         "https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/" 
+		            & (try Number.ToText( [Offset]{[Index]} ) otherwise [Offset]{[Index]}) & "?Desde="&Date.ToText( FechaDesde, "yyyy-MM-dd")&"&Hasta="&Date.ToText( FechaHasta, "yyyy-MM-dd")
+		      ) 
+		    )[results]{0}
+		    ),
+		    #"Convertida en tabla" = Table.FromList(Call_API, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    Expander_idVariable = Table.ExpandRecordColumn(#"Convertida en tabla", "Column1", {"idVariable", "detalle"}, {"idVariable", "detalle"}),
+		    #"Se expandió filas" = Table.ExpandListColumn(Expander_idVariable, "detalle"),
+		    #"Se expandió detalle" = Table.ExpandRecordColumn(#"Se expandió filas", "detalle", {"fecha", "valor"}, {"fecha", "valor"})
+		in
+		    #"Se expandió detalle"
+		```
+	lineageTag: fcdd96ba-6441-4ccd-9984-56b65635a868
+	queryGroup: Aux
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Function
+
+expression ConsultarDatosBCRA =
+		(Nros_idVariable as text, FechaDesde as date, FechaHasta as date) as table =>
+		let
+		    IDs = List.Distinct(List.Transform(Text.Split(Nros_idVariable, ","), each Number.FromText(Text.Trim(_)))),
+		    Validados = if FechaDesde > FechaHasta or List.IsEmpty(IDs) then error "Revisar variables y fechas de consulta." else IDs,
+		    Limite = 1000,
+		    Pagina = (ID as number, Desplazamiento as number) as list =>
+		        let
+		            Respuesta = Json.Document(Web.Contents("https://api.bcra.gob.ar", [
+		                RelativePath = "estadisticas/v4.0/Monetarias/" & Number.ToText(ID),
+		                Query = [Desde = Date.ToText(FechaDesde, "yyyy-MM-dd"), Hasta = Date.ToText(FechaHasta, "yyyy-MM-dd"),
+		                         Limit = Text.From(Limite), Offset = Text.From(Desplazamiento)],
+		                Timeout = #duration(0,0,2,0)
+		            ])),
+		            Resultado = if Record.FieldOrDefault(Respuesta, "status", 200) <> 200 then
+		                error Error.Record("BCRA", "La API devolvió un error; se conserva la última carga válida.", [idVariable=ID])
+		                else Respuesta[results],
+		            Detalle = List.Combine(List.Transform(Resultado, each _[detalle])),
+		            Filas = List.Transform(Detalle, each [idVariable=ID, fecha=Date.From(_[fecha]), valor=Number.From(_[valor])])
+		        in Filas,
+		    Serie = (ID as number) as list =>
+		        let
+		            Paginas = List.Generate(
+		                () => [Offset=0, Filas=Pagina(ID,0)],
+		                each not List.IsEmpty([Filas]),
+		                each let Siguiente=[Offset]+List.Count([Filas]) in
+		                    [Offset=Siguiente, Filas=if List.Count([Filas]) < Limite then {} else Pagina(ID,Siguiente)],
+		                each [Filas]),
+		            Filas = List.Combine(Paginas)
+		        in if List.IsEmpty(Filas) then error Error.Record("BCRA", "La serie solicitada no devolvió observaciones.", [idVariable=ID]) else Filas,
+		    Datos = Table.FromRecords(List.Combine(List.Transform(Validados, each Serie(_))),
+		                type table [idVariable=Int64.Type, fecha=date, valor=number]),
+		    Unicos = Table.Distinct(Datos, {"idVariable","fecha"}),
+		    Resultado = if Table.RowCount(Unicos) <> Table.RowCount(Datos) then error "La API devolvió fechas duplicadas; revisar paginación."
+		                else Table.Sort(Unicos, {{"idVariable",Order.Ascending},{"fecha",Order.Ascending}})
+		in Resultado
+	lineageTag: e56824a0-9b3c-422a-a0e4-9806128f45a8
+	queryGroup: Aux
+
+	annotation PBI_ResultType = Function
+
+expression BCRA_Principales_Analisis = BCRA_Principales_Variables
+	lineageTag: 7bd7f0b4-54b4-4d36-8b30-36b822696777
+	queryGroup: Aux
+
+	annotation PBI_ResultType = Table
+
+expression ConsultarCentralDeudores =
+		// ============================================================================================
+		// FUNCIONES PARA LA API CENTRAL DE DEUDORES - BCRA v1.0
+		// ============================================================================================
+		// BASE URL: https://api.bcra.gob.ar/CentralDeDeudores/v1.0/
+		//
+		// ENDPOINTS DISPONIBLES:
+		//   1. ConsultarDeudas(CUIT)             → Situación actual del último período informado
+		//   2. ConsultarDeudasHistoricas(CUIT)   → Historial crediticio de los últimos 24 meses
+		//   3. ConsultarChequesRechazados(CUIT)  → Cheques rechazados con sus causales
+		//
+		// PARÁMETRO COMÚN: identificacion (CUIT/CUIL/CDI de 11 dígitos, como texto)
+		//
+		// NOTAS:
+		//   - No requiere autenticación
+		//   - Los montos están expresados en MILES de pesos
+		//   - Situación 1=Normal | 2=Seguimiento especial | 3=Con problemas
+		//               4=Alto riesgo insolvencia | 5=Irrecuperable
+		// ============================================================================================
+		
+		
+		// ============================================================
+		// FUNCIÓN 1: ConsultarDeudas
+		// Devuelve la situación crediticia del último período informado
+		// ============================================================
+		//
+		// RETORNA tabla con columnas:
+		//   identificacion, denominacion, periodo, entidad, situacion,
+		//   fechaSit1, monto, diasAtrasoPago, refinanciaciones,
+		//   recategorizacionOblig, situacionJuridica, irrecDisposicionTecnica,
+		//   enRevision, procesoJud
+		//
+		// USO: ConsultarDeudas("20123456789")
+		//
+		let
+		    ConsultarDeudas =
+		        let
+		            func = (identificacion as text) as table =>
+		                let
+		                    // ==================== PASO 1: VALIDACIÓN ====================
+		                    CUITLimpio = Text.Trim(identificacion),
+		
+		                    ValidarCUIT =
+		                        if Text.Length(CUITLimpio) = 0 then
+		                            error Error.Record("Parámetro Inválido", "La identificación no puede estar vacía", identificacion)
+		                        else if Text.Length(CUITLimpio) <> 11 then
+		                            error Error.Record("Parámetro Inválido", "El CUIT/CUIL/CDI debe tener exactamente 11 dígitos", [Ingresado = identificacion, Longitud = Text.Length(CUITLimpio)])
+		                        else
+		                            true,
+		
+		                    // ==================== PASO 2: LLAMADA A LA API ====================
+		                    UrlCompleta = "https://api.bcra.gob.ar/CentralDeDeudores/v1.0/Deudas/" & CUITLimpio,
+		
+		                    RespuestaHttp = try Web.Contents(
+		                        UrlCompleta,
+		                        [Headers = [#"User-Agent" = "PowerQuery-BCRA-Client"]]
+		                    ) otherwise null,
+		
+		                    DatosJson = if RespuestaHttp <> null then
+		                        try Json.Document(RespuestaHttp) otherwise null
+		                    else
+		                        null,
+		
+		                    // ==================== PASO 3: VALIDACIÓN DE RESPUESTA ====================
+		                    ValidarRespuesta =
+		                        if DatosJson = null then
+		                            error Error.Record("Error de Conectividad", "No se pudo obtener respuesta de la API del BCRA", UrlCompleta)
+		                        else if Record.HasFields(DatosJson, "errorMessages") then
+		                            error Error.Record("Error de API", Text.Combine(List.Transform(DatosJson[errorMessages], each _), " | "), [Status = DatosJson[status], CUIT = CUITLimpio])
+		                        else
+		                            true,
+		
+		                    // ==================== PASO 4: EXTRACCIÓN DE DATOS ====================
+		                    Results      = DatosJson[results],
+		                    Identificacion = Text.From(Results[identificacion]),
+		                    Denominacion   = Results[denominacion],
+		                    Periodos       = Results[periodos],
+		
+		                    // ==================== PASO 5: EXPANSIÓN PERIODO → ENTIDAD ====================
+		                    TablaPeriodos = Table.FromList(Periodos, Splitter.SplitByNothing(), {"periodoRec"}, null, ExtraValues.Error),
+		
+		                    TablaConPeriodo = Table.AddColumn(TablaPeriodos, "periodo", each Record.Field([periodoRec], "periodo")),
+		                    TablaConEntidades = Table.AddColumn(TablaConPeriodo, "entidades", each Record.Field([periodoRec], "entidades")),
+		
+		                    TablaExpandidaEntidades = Table.ExpandListColumn(
+		                        Table.RemoveColumns(TablaConEntidades, {"periodoRec"}),
+		                        "entidades"
+		                    ),
+		
+		                    TablaExpandidaRec = Table.ExpandRecordColumn(
+		                        TablaExpandidaEntidades,
+		                        "entidades",
+		                        {"entidad", "situacion", "fechaSit1", "monto", "diasAtrasoPago",
+		                         "refinanciaciones", "recategorizacionOblig", "situacionJuridica",
+		                         "irrecDisposicionTecnica", "enRevision", "procesoJud"},
+		                        {"entidad", "situacion", "fechaSit1", "monto", "diasAtrasoPago",
+		                         "refinanciaciones", "recategorizacionOblig", "situacionJuridica",
+		                         "irrecDisposicionTecnica", "enRevision", "procesoJud"}
+		                    ),
+		
+		                    // ==================== PASO 6: AGREGAR COLUMNAS DE IDENTIFICACIÓN ====================
+		                    TablaConId = Table.AddColumn(TablaExpandidaRec, "identificacion", each Identificacion),
+		                    TablaConDenom = Table.AddColumn(TablaConId, "denominacion", each Denominacion),
+		
+		                    // ==================== PASO 7: REORDENAR Y TIPAR ====================
+		                    TablaReordenada = Table.ReorderColumns(
+		                        TablaConDenom,
+		                        {"identificacion", "denominacion", "periodo", "entidad", "situacion",
+		                         "fechaSit1", "monto", "diasAtrasoPago", "refinanciaciones",
+		                         "recategorizacionOblig", "situacionJuridica", "irrecDisposicionTecnica",
+		                         "enRevision", "procesoJud"}
+		                    ),
+		
+		                    TablaFinal = Table.TransformColumnTypes(
+		                        TablaReordenada,
+		                        {
+		                            {"identificacion",          type text},
+		                            {"denominacion",            type text},
+		                            {"periodo",                 type text},
+		                            {"entidad",                 type text},
+		                            {"situacion",               Int64.Type},
+		                            {"fechaSit1",               type date},
+		                            {"monto",                   type number},
+		                            {"diasAtrasoPago",          Int64.Type},
+		                            {"refinanciaciones",        type logical},
+		                            {"recategorizacionOblig",   type logical},
+		                            {"situacionJuridica",       type logical},
+		                            {"irrecDisposicionTecnica", type logical},
+		                            {"enRevision",              type logical},
+		                            {"procesoJud",              type logical}
+		                        }
+		                    )
+		                in
+		                    TablaFinal
+		        in
+		            func,
+		
+		    TipoFuncion = type function (
+		        identificacion as text
+		    ) as table meta [
+		        Documentation.Name = "ConsultarDeudas",
+		        Documentation.LongDescription = "
+		Consulta la situación crediticia actual de una persona humana o jurídica en la Central de Deudores del BCRA.
+		Devuelve el último período informado por cada entidad financiera.
+		
+		SITUACIONES:
+		  1 = Normal
+		  2 = Seguimiento especial / Riesgo bajo
+		  3 = Con problemas / Riesgo medio
+		  4 = Alto riesgo de insolvencia / Riesgo alto
+		  5 = Irrecuperable
+		
+		Los montos se expresan en MILES de pesos.",
+		        Documentation.Examples = {
+		            [
+		                Description = "Consultar deudas actuales de una empresa",
+		                Code = "ConsultarDeudas(""30500010912"")",
+		                Result = "Tabla con la situación crediticia del último período informado por cada entidad."
+		            ]
+		        },
+		        Documentation.Author = "Adaptado de ConsultarDatosBCRA - API Central de Deudores v1.0"
+		    ]
+		in
+		    Value.ReplaceType(ConsultarDeudas, TipoFuncion)
+	lineageTag: 1922b72d-858b-44f6-b3f8-5203ce65ca1d
+	queryGroup: Aux
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Function
+
+expression ConsultarDeudasHistoricas =
+		// ============================================================
+		// FUNCIÓN 2: ConsultarDeudasHistoricas
+		// Devuelve la situación crediticia de los últimos 24 meses
+		// ============================================================
+		//
+		// RETORNA tabla con columnas:
+		//   identificacion, denominacion, periodo, entidad, situacion, monto, enRevision, procesoJud
+		//
+		// USO: ConsultarDeudasHistoricas("20123456789")
+		//
+		// NOTA: copiar este bloque como una consulta separada en Power Query
+		//
+		let
+		    ConsultarDeudasHistoricas =
+		        let
+		            func = (identificacion as text) as table =>
+		                let
+		                    // ==================== PASO 1: VALIDACIÓN DEL CUIT ====================
+		                    CUITLimpio = Text.Trim(identificacion),
+		
+		                    _validar =
+		                        if Text.Length(CUITLimpio) = 0 then
+		                            error Error.Record("Parámetro Inválido", "La identificación no puede estar vacía", identificacion)
+		                        else if Text.Length(CUITLimpio) <> 11 then
+		                            error Error.Record("Parámetro Inválido", "El CUIT/CUIL/CDI debe tener exactamente 11 dígitos", [Ingresado = identificacion, Longitud = Text.Length(CUITLimpio)])
+		                        else
+		                            true,
+		
+		                    // ==================== PASO 2: LLAMADA A LA API ====================
+		                    UrlCompleta = "https://api.bcra.gob.ar/CentralDeDeudores/v1.0/Deudas/Historicas/" & CUITLimpio,
+		
+		                    RespuestaHttp = try Web.Contents(
+		                        UrlCompleta,
+		                        [Headers = [#"User-Agent" = "PowerQuery-BCRA-Client"]]
+		                    ) otherwise null,
+		
+		                    // ==================== PASO 3: PARSEO Y VALIDACIÓN DE RESPUESTA ====================
+		                    // Se parsea primero y luego se valida el contenido ANTES de acceder a [results]
+		                    DatosJson =
+		                        if _validar and RespuestaHttp <> null then
+		                            try Json.Document(RespuestaHttp) otherwise null
+		                        else if RespuestaHttp = null then
+		                            error Error.Record("Error de Conectividad", "No se pudo establecer conexión con la API del BCRA. Verificar conectividad.", UrlCompleta)
+		                        else
+		                            null,
+		
+		                    // Validación del contenido JSON — esto se evalúa ANTES de acceder a [results]
+		                    _validarJson =
+		                        if DatosJson = null then
+		                            error Error.Record("Error de Parseo", "La respuesta de la API no pudo ser interpretada como JSON.", UrlCompleta)
+		                        else if not Record.HasFields(DatosJson, "status") then
+		                            error Error.Record("Respuesta Inesperada", "La API no devolvió un campo 'status'. Estructura de respuesta desconocida.", UrlCompleta)
+		                        else if DatosJson[status] = 400 then
+		                            error Error.Record("Error 400 - Parámetro Inválido", Text.Combine(List.Transform(DatosJson[errorMessages], each Text.From(_)), " | "), [CUIT = CUITLimpio])
+		                        else if DatosJson[status] = 404 then
+		                            error Error.Record("Error 404 - No Encontrado", "No se encontraron datos para el CUIT/CUIL/CDI ingresado.", [CUIT = CUITLimpio])
+		                        else if DatosJson[status] = 500 then
+		                            error Error.Record("Error 500 - Error del Servidor", "La API del BCRA devolvió un error interno.", [CUIT = CUITLimpio])
+		                        else if not Record.HasFields(DatosJson, "results") then
+		                            error Error.Record("Sin Resultados", "La respuesta no contiene el campo 'results'.", [Status = DatosJson[status], CUIT = CUITLimpio])
+		                        else
+		                            true,
+		
+		                    // ==================== PASO 4: EXTRACCIÓN — solo se ejecuta si _validarJson = true ====================
+		                    Results        = if _validarJson then DatosJson[results] else null,
+		                    Identificacion = Text.From(Results[identificacion]),
+		                    Denominacion   = Results[denominacion],
+		                    Periodos       = Results[periodos],
+		
+		                    // ==================== PASO 5: EXPANSIÓN PERIODO → ENTIDAD ====================
+		                    TablaPeriodos = Table.FromList(
+		                        Periodos, Splitter.SplitByNothing(), {"periodoRec"}, null, ExtraValues.Error
+		                    ),
+		
+		                    TablaConPeriodo = Table.AddColumn(
+		                        TablaPeriodos, "periodo", each Record.Field([periodoRec], "periodo")
+		                    ),
+		
+		                    TablaConEntidades = Table.AddColumn(
+		                        TablaConPeriodo, "entidades", each Record.Field([periodoRec], "entidades")
+		                    ),
+		
+		                    TablaExpandidaEntidades = Table.ExpandListColumn(
+		                        Table.RemoveColumns(TablaConEntidades, {"periodoRec"}),
+		                        "entidades"
+		                    ),
+		
+		                    TablaExpandidaRec = Table.ExpandRecordColumn(
+		                        TablaExpandidaEntidades,
+		                        "entidades",
+		                        {"entidad", "situacion", "monto", "enRevision", "procesoJud"},
+		                        {"entidad", "situacion", "monto", "enRevision", "procesoJud"}
+		                    ),
+		
+		                    // ==================== PASO 6: AGREGAR IDENTIFICACION Y DENOMINACION ====================
+		                    TablaConId    = Table.AddColumn(TablaExpandidaRec, "identificacion", each Identificacion),
+		                    TablaConDenom = Table.AddColumn(TablaConId,        "denominacion",   each Denominacion),
+		
+		                    // ==================== PASO 7: REORDENAR Y APLICAR TIPOS ====================
+		                    TablaReordenada = Table.ReorderColumns(
+		                        TablaConDenom,
+		                        {"identificacion", "denominacion", "periodo", "entidad",
+		                         "situacion", "monto", "enRevision", "procesoJud"}
+		                    ),
+		
+		                    TablaFinal = Table.TransformColumnTypes(
+		                        TablaReordenada,
+		                        {
+		                            {"identificacion", type text},
+		                            {"denominacion",   type text},
+		                            {"periodo",        type text},
+		                            {"entidad",        type text},
+		                            {"situacion",      Int64.Type},
+		                            {"monto",          type number},
+		                            {"enRevision",     type logical},
+		                            {"procesoJud",     type logical}
+		                        }
+		                    )
+		                in
+		                    TablaFinal
+		        in
+		            func,
+		
+		    TipoFuncion = type function (
+		        identificacion as (type text meta [
+		            Documentation.FieldCaption = "CUIT / CUIL / CDI",
+		            Documentation.FieldDescription = "Identificación fiscal de 11 dígitos (sin guiones)",
+		            Documentation.SampleValues = {"20321251871", "30500010912"}
+		        ])
+		    ) as table meta [
+		        Documentation.Name = "ConsultarDeudasHistoricas",
+		        Documentation.LongDescription = "
+		Consulta el historial crediticio de los últimos 24 meses de una persona humana o jurídica
+		en la Central de Deudores del BCRA (API v1.0).
+		
+		SITUACIONES:
+		  1 = Normal
+		  2 = Seguimiento especial / Riesgo bajo
+		  3 = Con problemas / Riesgo medio
+		  4 = Alto riesgo de insolvencia / Riesgo alto
+		  5 = Irrecuperable
+		
+		Los montos se expresan en MILES de pesos.
+		No requiere autenticación.",
+		        Documentation.Examples = {
+		            [
+		                Description = "Historial de los últimos 24 meses de una persona jurídica",
+		                Code = "ConsultarDeudasHistoricas(""30500010912"")",
+		                Result = "Tabla con situación crediticia mensual por entidad."
+		            ]
+		        }
+		    ]
+		in
+		    Value.ReplaceType(ConsultarDeudasHistoricas, TipoFuncion)
+	lineageTag: 5ea7c096-e48c-460d-ace7-323d42445099
+	queryGroup: Aux
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Function
+
+expression ConsultarChequesRechazados =
+		// ============================================================
+		// FUNCIÓN 3: ConsultarChequesRechazados
+		// Devuelve los cheques rechazados con sus causales
+		// ============================================================
+		//
+		// RETORNA tabla con columnas:
+		//   identificacion, denominacion, causal, entidad, nroCheque, fechaRechazo,
+		//   monto, fechaPago, fechaPagoMulta, estadoMulta, ctaPersonal, denomJuridica,
+		//   enRevision, procesoJud
+		//
+		// USO: ConsultarChequesRechazados("20123456789")
+		//
+		// NOTA: copiar este bloque como una consulta separada en Power Query
+		//
+		let
+		    ConsultarChequesRechazados =
+		        let
+		            func = (identificacion as text) as table =>
+		                let
+		                    // ==================== PASO 1: VALIDACIÓN DEL CUIT ====================
+		                    CUITLimpio = Text.Trim(identificacion),
+		
+		                    _validar =
+		                        if Text.Length(CUITLimpio) = 0 then
+		                            error Error.Record("Parámetro Inválido", "La identificación no puede estar vacía", identificacion)
+		                        else if Text.Length(CUITLimpio) <> 11 then
+		                            error Error.Record("Parámetro Inválido", "El CUIT/CUIL/CDI debe tener exactamente 11 dígitos", [Ingresado = identificacion, Longitud = Text.Length(CUITLimpio)])
+		                        else
+		                            true,
+		
+		                    // ==================== PASO 2: LLAMADA A LA API ====================
+		                    // URL en minúsculas — la API es case-sensitive
+		                    UrlCompleta = "https://api.bcra.gob.ar/centraldedeudores/v1.0/Deudas/ChequesRechazados/" & CUITLimpio,
+		
+		                    RespuestaHttp =
+		                        if _validar then
+		                            Web.Contents(
+		                                UrlCompleta,
+		                                [
+		                                    Headers = [#"User-Agent" = "PowerQuery-BCRA-Client"],
+		                                    ManualStatusHandling = {400, 404, 500}
+		                                ]
+		                            )
+		                        else
+		                            null,
+		
+		                    // ==================== PASO 3: LEER STATUS HTTP ====================
+		                    StatusCode = Value.Metadata(RespuestaHttp)[Response.Status],
+		
+		                    // ==================== PASO 4: TABLA VACÍA TIPADA (reutilizable) ====================
+		                    TablaVacia = #table(
+		                        type table [
+		                            identificacion = text, denominacion = text, causal = text,
+		                            entidad = Int64.Type, nroCheque = Int64.Type, fechaRechazo = date,
+		                            monto = number, fechaPago = date, fechaPagoMulta = date,
+		                            estadoMulta = text, ctaPersonal = logical, denomJuridica = text,
+		                            enRevision = logical, procesoJud = logical
+		                        ],
+		                        {}
+		                    ),
+		
+		                    // ==================== PASO 5: MANEJO POR STATUS ====================
+		                    Resultado =
+		                        if StatusCode = 404 then
+		                            // Sin datos = resultado válido, devuelve tabla vacía
+		                            TablaVacia
+		                        else if StatusCode = 400 then
+		                            error Error.Record("Error 400 - Parámetro Inválido", "El CUIT/CUIL/CDI ingresado tiene un formato incorrecto.", [CUIT = CUITLimpio])
+		                        else if StatusCode = 500 then
+		                            error Error.Record("Error 500 - Error del Servidor", "La API del BCRA devolvió un error interno. Reintente más tarde.", [CUIT = CUITLimpio])
+		                        else
+		                            // ==================== PASO 6: PARSEO JSON (status 200) ====================
+		                            let
+		                                DatosJson = try Json.Document(RespuestaHttp) otherwise
+		                                    error Error.Record("Error de Parseo", "La respuesta no pudo interpretarse como JSON.", [URL = UrlCompleta, Status = StatusCode]),
+		
+		                                _validarResults =
+		                                    if not Record.HasFields(DatosJson, "results") then
+		                                        error Error.Record("Sin Resultados", "La respuesta no contiene el campo 'results'.", [Status = DatosJson[status], CUIT = CUITLimpio])
+		                                    else
+		                                        true,
+		
+		                                Results        = if _validarResults then DatosJson[results] else null,
+		                                Identificacion = Text.From(Results[identificacion]),
+		                                Denominacion   = Results[denominacion],
+		                                Causales       = Results[causales],
+		
+		                                // ==================== PASO 7: EXPANSIÓN CAUSAL → ENTIDAD → DETALLE ====================
+		                                TablaCausales = Table.FromList(
+		                                    Causales, Splitter.SplitByNothing(), {"causalRec"}, null, ExtraValues.Error
+		                                ),
+		
+		                                TablaConCausal = Table.AddColumn(
+		                                    TablaCausales, "causal", each Record.Field([causalRec], "causal")
+		                                ),
+		
+		                                TablaConEntidades = Table.AddColumn(
+		                                    TablaConCausal, "entidades", each Record.Field([causalRec], "entidades")
+		                                ),
+		
+		                                TablaExpandidaEntidades = Table.ExpandListColumn(
+		                                    Table.RemoveColumns(TablaConEntidades, {"causalRec"}), "entidades"
+		                                ),
+		
+		                                TablaConEntidadId = Table.AddColumn(
+		                                    TablaExpandidaEntidades, "entidad", each Record.Field([entidades], "entidad")
+		                                ),
+		
+		                                TablaConDetalle = Table.AddColumn(
+		                                    TablaConEntidadId, "detalle", each Record.Field([entidades], "detalle")
+		                                ),
+		
+		                                TablaExpandidaDetalle = Table.ExpandListColumn(
+		                                    Table.RemoveColumns(TablaConDetalle, {"entidades"}), "detalle"
+		                                ),
+		
+		                                TablaExpandidaRec = Table.ExpandRecordColumn(
+		                                    TablaExpandidaDetalle,
+		                                    "detalle",
+		                                    {"nroCheque", "fechaRechazo", "monto", "fechaPago", "fechaPagoMulta",
+		                                     "estadoMulta", "ctaPersonal", "denomJuridica", "enRevision", "procesoJud"},
+		                                    {"nroCheque", "fechaRechazo", "monto", "fechaPago", "fechaPagoMulta",
+		                                     "estadoMulta", "ctaPersonal", "denomJuridica", "enRevision", "procesoJud"}
+		                                ),
+		
+		                                TablaConId    = Table.AddColumn(TablaExpandidaRec, "identificacion", each Identificacion),
+		                                TablaConDenom = Table.AddColumn(TablaConId,        "denominacion",   each Denominacion),
+		
+		                                TablaReordenada = Table.ReorderColumns(
+		                                    TablaConDenom,
+		                                    {"identificacion", "denominacion", "causal", "entidad", "nroCheque",
+		                                     "fechaRechazo", "monto", "fechaPago", "fechaPagoMulta", "estadoMulta",
+		                                     "ctaPersonal", "denomJuridica", "enRevision", "procesoJud"}
+		                                ),
+		
+		                                TablaFinal = Table.TransformColumnTypes(
+		                                    TablaReordenada,
+		                                    {
+		                                        {"identificacion", type text},    {"denominacion",   type text},
+		                                        {"causal",         type text},    {"entidad",        Int64.Type},
+		                                        {"nroCheque",      Int64.Type},   {"fechaRechazo",   type date},
+		                                        {"monto",          type number},  {"fechaPago",       type date},
+		                                        {"fechaPagoMulta", type date},    {"estadoMulta",    type text},
+		                                        {"ctaPersonal",    type logical}, {"denomJuridica",  type text},
+		                                        {"enRevision",     type logical}, {"procesoJud",     type logical}
+		                                    }
+		                                )
+		                            in
+		                                TablaFinal
+		                in
+		                    Resultado
+		        in
+		            func,
+		
+		    TipoFuncion = type function (
+		        identificacion as (type text meta [
+		            Documentation.FieldCaption = "CUIT / CUIL / CDI",
+		            Documentation.FieldDescription = "Identificación fiscal de 11 dígitos (sin guiones)",
+		            Documentation.SampleValues = {"30644586983", "20321251871"}
+		        ])
+		    ) as table meta [
+		        Documentation.Name = "ConsultarChequesRechazados",
+		        Documentation.LongDescription = "
+		Consulta los cheques rechazados de una persona humana o jurídica en la Central de Cheques Rechazados del BCRA (API v1.0).
+		
+		Si el CUIT no registra cheques rechazados (HTTP 404), devuelve una tabla vacía sin error.
+		
+		CAUSALES: Sin fondos | Defectos formales
+		ESTADO MULTA: IMPAGA | SUSPENDIDO | SUSPENDIDA
+		Los montos se expresan en pesos. No requiere autenticación.",
+		        Documentation.Examples = {[
+		            Description = "CUIT con cheques rechazados",
+		            Code = "ConsultarChequesRechazados(""30717283186"")",
+		            Result = "Tabla con cheques, causales, montos y estados de multa."
+		        ],[
+		            Description = "CUIT sin cheques rechazados",
+		            Code = "ConsultarChequesRechazados(""30644586983"")",
+		            Result = "Tabla vacía (sin filas) — el CUIT no registra cheques rechazados."
+		        ]}
+		    ]
+		in
+		    Value.ReplaceType(ConsultarChequesRechazados, TipoFuncion)
+	lineageTag: 5562c016-d288-4529-9b62-e6ea523ead2e
+	queryGroup: Aux
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Function
+

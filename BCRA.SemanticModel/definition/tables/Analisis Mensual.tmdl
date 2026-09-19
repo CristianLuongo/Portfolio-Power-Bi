@@ -1,0 +1,133 @@
+table 'Analisis Mensual'
+	isHidden
+	lineageTag: 6b0ef810-aa93-4102-8cbb-a8b455fc8482
+
+	column fecha
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 2c263d80-e381-4c46-8804-b59c97fe0797
+		summarizeBy: none
+		sourceColumn: fecha
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column inflacionMensual
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 6907d98f-7254-4798-882d-c2db23cb5884
+		summarizeBy: none
+		sourceColumn: inflacionMensual
+
+	column inflacionInteranual
+		dataType: double
+		formatString: 0.00%
+		lineageTag: bec74a65-1158-43ac-99c7-bbcf3f7d9e48
+		summarizeBy: none
+		sourceColumn: inflacionInteranual
+
+	column dolar
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 0d291910-3d6e-4e74-866b-5161e6ed417c
+		summarizeBy: none
+		sourceColumn: dolar
+
+	column credito
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 3b0b9986-9fcd-47eb-9585-8cfc6c3cae6c
+		summarizeBy: none
+		sourceColumn: credito
+
+	column cer
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 6abaa1d7-8b2e-4209-beeb-3e5a98693f52
+		summarizeBy: none
+		sourceColumn: cer
+
+	column uva
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 4e5d04e0-752f-4997-992b-7f218179a58a
+		summarizeBy: none
+		sourceColumn: uva
+
+	column badlar
+		dataType: double
+		formatString: 0.00%
+		lineageTag: f93ccda0-92c7-44a5-a749-9a20055bb4e0
+		summarizeBy: none
+		sourceColumn: badlar
+
+	column interbancaria
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 1016ca02-1978-4541-ab2a-d91d5cbc8663
+		summarizeBy: none
+		sourceColumn: interbancaria
+
+	column depositos
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 9ed77673-0e7f-4ffb-8428-ce3cf2430a73
+		summarizeBy: none
+		sourceColumn: depositos
+
+	column adelantos
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 60697d29-8661-42d1-a77f-fcf9750d0c9e
+		summarizeBy: none
+		sourceColumn: adelantos
+
+	column factorDepositos
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 552612f1-d8c4-461a-9aab-51d1d153542a
+		summarizeBy: none
+		sourceColumn: factorDepositos
+
+	column indicePrecios
+		dataType: double
+		formatString: #,0.00
+		lineageTag: ec7f654d-4075-4909-b174-1e089bc124a1
+		summarizeBy: none
+		sourceColumn: indicePrecios
+
+	partition 'Analisis Mensual' = m
+		mode: import
+		source =
+				let
+				    Datos = Table.Buffer(BCRA_Datos),
+				    Hoy = Date.From(DateTimeZone.SwitchZone(DateTimeZone.FixedUtcNow(), -3)),
+				    UltimoMesCompleto = Date.EndOfMonth(Date.AddMonths(Hoy,-1)),
+				    Inicio = Date.StartOfMonth(List.Min(Datos[fecha])),
+				    Fin = List.Min({UltimoMesCompleto, Date.EndOfMonth(List.Max(Datos[fecha]))}),
+				    Meses = List.Generate(() => Inicio, each _ <= Fin, each Date.AddMonths(_,1)),
+				    Cierre = (ID as number, Desde as date, Hasta as date) as nullable number =>
+				        let T=Table.SelectRows(Datos, each [idVariable]=ID and [fecha]>=Desde and [fecha]<=Hasta),
+				            O=Table.Sort(T,{{"fecha",Order.Descending}})
+				        in if Table.IsEmpty(O) then null else O{0}[valor],
+				    Promedio = (ID as number, Desde as date, Hasta as date) as nullable number =>
+				        let T=Table.SelectRows(Datos, each [idVariable]=ID and [fecha]>=Desde and [fecha]<=Hasta)
+				        in if Table.IsEmpty(T) then null else List.Average(T[valor])/100,
+				    Filas = List.Transform(Meses, (Mes) =>
+				        let FinMes=Date.EndOfMonth(Mes), Anterior=Date.AddMonths(Mes,-1),
+				            TasaInicial=Cierre(12,Anterior,Date.EndOfMonth(Anterior)),
+				            IPC=Cierre(27,Mes,FinMes), IPCIA=Cierre(28,Mes,FinMes)
+				        in [fecha=FinMes, inflacionMensual=if IPC=null then null else IPC/100,
+				            inflacionInteranual=if IPCIA=null then null else IPCIA/100,
+				            dolar=Cierre(5,Mes,FinMes), credito=Cierre(26,Mes,FinMes), cer=Cierre(30,Mes,FinMes), uva=Cierre(31,Mes,FinMes),
+				            badlar=Promedio(7,Mes,FinMes), interbancaria=Promedio(11,Mes,FinMes),
+				            depositos=Promedio(12,Mes,FinMes), adelantos=Promedio(13,Mes,FinMes),
+				            factorDepositos=if TasaInicial=null then null else 1+TasaInicial/100*Date.DaysInMonth(Mes)/365]),
+				    ConIndice = List.Accumulate(Filas, [Indice=100, Filas={}], (Estado,Fila) =>
+				        let Nuevo=if Estado[Indice]=null or Fila[inflacionMensual]=null then null else Estado[Indice]*(1+Fila[inflacionMensual])
+				        in [Indice=Nuevo,Filas=Estado[Filas]&{Record.AddField(Fila,"indicePrecios",Nuevo)}])[Filas],
+				    Resultado=Table.FromRecords(ConIndice, type table [fecha=date,inflacionMensual=nullable number,
+				        inflacionInteranual=nullable number,dolar=nullable number,credito=nullable number,cer=nullable number,uva=nullable number,
+				        badlar=nullable number,interbancaria=nullable number,depositos=nullable number,adelantos=nullable number,
+				        factorDepositos=nullable number,indicePrecios=nullable number])
+				in Resultado
+

@@ -1,0 +1,89 @@
+table BCRA_Principales_Variables
+	lineageTag: 648e6541-95ef-4e32-bd45-66adbfc6dc66
+
+	column idVariable
+		dataType: int64
+		formatString: 0
+		lineageTag: 0fd99969-d7a8-4f4a-942e-58d3b73d2efc
+		summarizeBy: none
+		sourceColumn: idVariable
+
+		annotation SummarizationSetBy = Automatic
+
+	column descripcion
+		dataType: string
+		lineageTag: 66df88b0-dda5-4401-a022-675e1d8580cd
+		summarizeBy: none
+		sourceColumn: descripcion
+
+		annotation SummarizationSetBy = Automatic
+
+	column categoria
+		dataType: string
+		lineageTag: d7d7c9f1-7b80-440d-8852-2bc4e3927e5b
+		summarizeBy: none
+		sourceColumn: categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column tipoSerie
+		dataType: string
+		lineageTag: c65afef1-1803-47a5-92f6-e7b5afa1ba66
+		summarizeBy: none
+		sourceColumn: tipoSerie
+
+		annotation SummarizationSetBy = Automatic
+
+	column periodicidad
+		dataType: string
+		lineageTag: 15574ddf-801c-468a-8ded-b01a28d516a4
+		summarizeBy: none
+		sourceColumn: periodicidad
+
+		annotation SummarizationSetBy = Automatic
+
+	column unidadExpresion
+		dataType: string
+		lineageTag: c2b74894-5eb6-4be3-9742-8fb03a23ca9f
+		summarizeBy: none
+		sourceColumn: unidadExpresion
+
+		annotation SummarizationSetBy = Automatic
+
+	column moneda
+		dataType: string
+		lineageTag: f130cc32-19b0-4d2a-b1ee-d86b07bc8866
+		summarizeBy: none
+		sourceColumn: moneda
+
+		annotation SummarizationSetBy = Automatic
+
+	column Indicador
+		dataType: string
+		lineageTag: 6b3a2665-685f-4fcc-9f38-7a4eeb414b19
+		summarizeBy: none
+		sourceColumn: Indicador
+
+	partition BCRA_Principales_Variables = m
+		mode: import
+		queryGroup: Dimensiones
+		source =
+				let
+				    IDs={5,7,11,12,13,26,27,28,30,31},
+				    Consultar=(ID as number) as record =>
+				        let R=Json.Document(Web.Contents("https://api.bcra.gob.ar",[
+				            RelativePath="estadisticas/v4.0/Monetarias",
+				            Query=[IdVariable=Text.From(ID),Limit="10",Offset="0"],Timeout=#duration(0,0,2,0)])),
+				            Filas=List.Select(R[results],each [idVariable]=ID)
+				        in if List.Count(Filas)<>1 then error "No se pudo resolver una variable del catálogo BCRA." else Filas{0},
+				    Tabla=Table.FromRecords(List.Transform(IDs,each Consultar(_))),
+				    Columnas=Table.SelectColumns(Tabla,{"idVariable","descripcion","categoria","tipoSerie","periodicidad","unidadExpresion","moneda"}),
+				    Tipos=Table.TransformColumnTypes(Columnas,{{"idVariable",Int64.Type},{"descripcion",type text},{"categoria",type text},
+				        {"tipoSerie",type text},{"periodicidad",type text},{"unidadExpresion",type text},{"moneda",type text}}),
+				    Etiquetas=[#"5"="Dólar mayorista",#"7"="BADLAR privada",#"11"="Interbancaria",#"12"="Depósitos a 30 días",
+				        #"13"="Adelantos en cuenta corriente",#"26"="Crédito privado",#"27"="Inflación mensual",#"28"="Inflación interanual",#"30"="CER",#"31"="UVA"],
+				    Resultado=Table.AddColumn(Tipos,"Indicador",each Record.Field(Etiquetas,Text.From([idVariable])),type text)
+				in Resultado
+
+	annotation PBI_ResultType = Table
+

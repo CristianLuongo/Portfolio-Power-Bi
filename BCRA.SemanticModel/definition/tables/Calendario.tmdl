@@ -1,0 +1,119 @@
+table Calendario
+	lineageTag: 18edc684-bae9-4207-8fa1-3ef10223e00f
+	dataCategory: Time
+
+	column Fechas
+		dataType: dateTime
+		isKey
+		formatString: Long Date
+		lineageTag: 9491919e-d40c-4386-b326-cb5157780d7b
+		summarizeBy: none
+		sourceColumn: Fechas
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Año
+		dataType: double
+		formatString: 0
+		lineageTag: 8c01ce7b-5206-4303-9882-423ae61b1165
+		summarizeBy: none
+		sourceColumn: Año
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes
+		dataType: double
+		lineageTag: af59676e-22af-4e35-aaf5-1c7bb56504b5
+		summarizeBy: none
+		sourceColumn: Mes
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Dia
+		dataType: double
+		lineageTag: 6f56dc2b-d77a-4242-a918-7c99cd80712d
+		summarizeBy: none
+		sourceColumn: Dia
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Inicio del mes'
+		dataType: dateTime
+		formatString: yyyy/MM
+		lineageTag: 4e686185-cd27-421f-b150-7fe2387d6570
+		summarizeBy: none
+		sourceColumn: Inicio del mes
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	column 'Nombre del mes'
+		dataType: string
+		lineageTag: 6165204a-e78e-4e20-8bf0-15765e8776f6
+		summarizeBy: none
+		sourceColumn: Nombre del mes
+		sortByColumn: Mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Trimestre
+		dataType: int64
+		formatString: 0
+		lineageTag: dddd74bc-345b-4121-8896-010b236755b4
+		summarizeBy: none
+		sourceColumn: Trimestre
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Jerarquía calendario Año > Trimestre > Mes > Día
+	hierarchy 'Jerarquía Fecha'
+		lineageTag: 0b305fd1-45c8-4f8e-8fc7-bad6bad5d973
+
+		level Año
+			lineageTag: a166f692-58a8-46c0-b67c-f367ecaf304c
+			column: Año
+
+		level Trimestre
+			lineageTag: 13268816-4453-4793-9cea-faa495f436d2
+			column: Trimestre
+
+		level Mes
+			lineageTag: 1172a67e-d2bc-41e0-9257-a1b827822d0c
+			column: 'Nombre del mes'
+
+		level Día
+			lineageTag: 96656c8f-45f9-4b8c-8fe3-dc22b6fd3160
+			column: Dia
+
+	partition Calendario = m
+		mode: import
+		queryGroup: Dimensiones
+		source =
+				let
+				    Fechas = List.Generate(
+				        ()=> #date(Periodo-5,1,1),
+				        each _ <= Date.EndOfYear( DateTime.Date( DateTime.LocalNow())),
+				        each Date.AddDays(_, 1)
+				    ),
+				    #"Convertida en tabla" = Table.FromList(Fechas, Splitter.SplitByNothing(), type table[Fechas=date], null, ExtraValues.Error),
+				    #"Personalizada agregada" = Table.AddColumn(#"Convertida en tabla", "Personalizado", each Date.ToRecord([Fechas]), type [Year=number,Month=number,Day=number]),
+				    #"Se expandió Personalizado" = Table.ExpandRecordColumn(#"Personalizada agregada", "Personalizado", {"Year", "Month", "Day"}, {"Año", "Mes", "Dia"}),
+				    #"Inicio del mes insertado" = Table.AddColumn(#"Se expandió Personalizado", "Inicio del mes", each Date.StartOfMonth([Fechas]), type date),
+				    #"Nombre del mes insertado" = Table.AddColumn(#"Inicio del mes insertado", "Nombre del mes", each Text.Proper( Date.MonthName([Fechas])), type text),
+				    #"Trimestre insertado" = Table.AddColumn(#"Nombre del mes insertado", "Trimestre", each Date.QuarterOfYear([Fechas]), Int64.Type)
+				in
+				    #"Trimestre insertado"
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

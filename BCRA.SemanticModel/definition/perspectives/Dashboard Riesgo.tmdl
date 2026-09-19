@@ -1,0 +1,33 @@
+/// Vista para monitoreo de riesgo financiero
+perspective 'Dashboard Riesgo'
+
+	perspectiveTable Medidas
+
+		perspectiveMeasure 'Volatilidad Diaria'
+
+		perspectiveMeasure 'Desviacion Estandar'
+
+		perspectiveMeasure 'Coeficiente Variacion'
+
+		perspectiveMeasure AlertaTasas
+
+		perspectiveMeasure AlertaInflacion
+
+		perspectiveMeasure 'Outlier Superior'
+
+		perspectiveMeasure 'Outlier Inferior'
+
+		perspectiveMeasure 'Es Outlier'
+
+		perspectiveMeasure 'Rango Intercuartil'
+
+		perspectiveMeasure 'Spread Interbancario'
+
+		perspectiveMeasure 'Indice Estabilidad Economica'
+
+		perspectiveMeasure 'Presion Liquidez'
+
+	perspectiveTable BCRA_Principales_Variables
+
+	perspectiveTable Calendario
+

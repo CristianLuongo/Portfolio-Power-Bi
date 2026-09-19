@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "BCRA"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "7b230204-a826-41f5-92ed-69748fb64fb2"
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 169.39320462027433,
+            "y": 168.72266709573677
+          },
+          "nodeIndex": "BCRA_Datos",
+          "nodeLineageTag": "b76db830-00db-454e-8809-04e794f79d98",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "BCRA_Principales_Variables",
+          "nodeLineageTag": "648e6541-95ef-4e32-bd45-66adbfc6dc66",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 338
+          },
+          "nodeIndex": "Medidas",
+          "nodeLineageTag": "1825e0a8-2ecd-4938-a280-a50a89758de0",
+          "size": {
+            "height": 72,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 293
+        },
+        {
+          "location": {
+            "x": 329.37108500934471,
+            "y": 0
+          },
+          "nodeIndex": "Calendario",
+          "nodeLineageTag": "18edc684-bae9-4207-8fa1-3ef10223e00f",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 248
+        },
+        {
+          "location": {
+            "x": 1020.5029483291371,
+            "y": 0
+          },
+          "nodeIndex": "Eje X Dinamico",
+          "nodeLineageTag": "e26e2195-2927-4ca4-bcfa-7b582a1e1218",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 677.394015265598,
+            "y": 72.684652833396882
+          },
+          "nodeIndex": "Aux_Puente_EjeX_Calendario",
+          "nodeLineageTag": "c41d19b2-e7c0-4af0-835c-c50a6dfdf7c2",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 403.6183098267046,
+            "y": 339.77739755096229
+          },
+          "nodeIndex": "Analisis Mensual",
+          "nodeLineageTag": "6b0ef810-aa93-4102-8cbb-a8b455fc8482",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 962.555909674771,
+            "y": 447.25800444227491
+          },
+          "nodeIndex": "Control Actualizacion",
+          "nodeLineageTag": "d681fcc5-17e6-4a67-b6c5-426739437667",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 707.74141801850283,
+            "y": 448.24114004739022
+          },
+          "nodeIndex": "Inicio Simulacion",
+          "nodeLineageTag": "71912a06-330b-4d10-bab4-bd2957451e26",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1767.571081957587,
+            "y": 118
+          },
+          "nodeIndex": "Monto Inicial",
+          "nodeLineageTag": "23ee31b9-79a1-4f02-8887-26dcef12faf6",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 63.287087723234038,
+      "pinKeyFieldsToTop": true,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

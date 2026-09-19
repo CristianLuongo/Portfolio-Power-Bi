@@ -1,0 +1,43 @@
+model Model
+	culture: es-MX
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-AR
+	valueFilterBehavior: independent
+	dataAccessOptions
+		fastCombine
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup Aux
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup Dimensiones
+
+	annotation PBI_QueryGroupOrder = 1
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["BCRA_Principales_Variables","Call_LLM_API","Consulta_BCRA","Calendario","BCRA_Datos","Consulta_BCRA_V2","ConsultarDatosBCRA","ConsultarCentralDeudores","ConsultarDeudasHistoricas","ConsultarChequesRechazados","Medidas","Periodo","BCRA_Principales_Analisis","Analisis Mensual","Control Actualizacion"]
+
+annotation PBI_ProTooling = ["TMDLView_Desktop","MCP-PBIModeling","DevMode"]
+
+ref table BCRA_Datos
+ref table BCRA_Principales_Variables
+ref table Medidas
+ref table Calendario
+ref table 'Eje X Dinamico'
+ref table Aux_Puente_EjeX_Calendario
+ref table 'Analisis Mensual'
+ref table 'Monto Inicial'
+ref table 'Inicio Simulacion'
+ref table 'Control Actualizacion'
+
+ref perspective 'Dashboard Inversiones'
+ref perspective 'Dashboard Riesgo'
+ref perspective 'Dashboard Inflacion'
+ref perspective 'Dashboard Credito'
+ref perspective 'Dashboard Variables'
+
+ref cultureInfo es-MX
+

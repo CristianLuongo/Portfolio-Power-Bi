@@ -1,0 +1,15 @@
+table 'Control Actualizacion'
+	isHidden
+	lineageTag: d681fcc5-17e6-4a67-b6c5-426739437667
+
+	column ActualizadoUTC
+		dataType: dateTime
+		formatString: dd/MM/yyyy HH:mm
+		lineageTag: 7ca3e43a-7dce-41f1-8197-80f5ce308252
+		summarizeBy: none
+		sourceColumn: ActualizadoUTC
+
+	partition 'Control Actualizacion' = m
+		mode: import
+		source = #table(type table [ActualizadoUTC=datetime], {{DateTimeZone.RemoveZone(DateTimeZone.FixedUtcNow())}})
+

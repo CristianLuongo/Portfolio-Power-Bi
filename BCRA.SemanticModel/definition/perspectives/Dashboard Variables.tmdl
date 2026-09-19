@@ -1,0 +1,65 @@
+/// Vista completa para analisis profundo de cada variable BCRA
+perspective 'Dashboard Variables'
+
+	perspectiveTable BCRA_Datos
+
+	perspectiveTable BCRA_Principales_Variables
+
+	perspectiveTable Calendario
+
+	perspectiveTable Medidas
+
+		perspectiveMeasure 'Suma Valores'
+
+		perspectiveMeasure 'Max Valores'
+
+		perspectiveMeasure 'Min Valores'
+
+		perspectiveMeasure 'Promedio Valores'
+
+		perspectiveMeasure 'Variacion % Mensual'
+
+		perspectiveMeasure 'Variacion % Anual'
+
+		perspectiveMeasure 'Acumulado Anual'
+
+		perspectiveMeasure 'Volatilidad Diaria'
+
+		perspectiveMeasure 'Desviacion Estandar'
+
+		perspectiveMeasure 'Coeficiente Variacion'
+
+		perspectiveMeasure 'Promedio 30 Dias'
+
+		perspectiveMeasure 'Promedio 90 Dias'
+
+		perspectiveMeasure 'Promedio 6 Meses'
+
+		perspectiveMeasure 'Mediana Valores'
+
+		perspectiveMeasure 'Cuantil 25'
+
+		perspectiveMeasure 'Cuantil 75'
+
+		perspectiveMeasure 'Rango Intercuartil'
+
+		perspectiveMeasure 'Outlier Superior'
+
+		perspectiveMeasure 'Outlier Inferior'
+
+		perspectiveMeasure 'Es Outlier'
+
+		perspectiveMeasure 'Proximidad al Minimo %'
+
+		perspectiveMeasure 'Distancia al Maximo %'
+
+		perspectiveMeasure 'Dias desde Maximo'
+
+		perspectiveMeasure 'Dias desde Minimo'
+
+		perspectiveMeasure 'Momentum Corto Plazo'
+
+		perspectiveMeasure 'Momentum Largo Plazo'
+
+		perspectiveMeasure 'Tendencia General'
+

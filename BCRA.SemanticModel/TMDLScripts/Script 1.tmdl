@@ -1,0 +1,195 @@
+createOrReplace
+
+	/// Vista especializada para analisis de decisiones de inversion
+	perspective 'Dashboard Inversiones'
+
+		perspectiveTable Medidas
+
+			perspectiveMeasure 'Spread Tasas Active-Pasivas'
+
+			perspectiveMeasure 'Momentum Corto Plazo'
+
+			perspectiveMeasure 'Momentum Largo Plazo'
+
+			perspectiveMeasure 'Tendencia General'
+
+			perspectiveMeasure 'Promedio 30 Dias'
+
+			perspectiveMeasure 'Promedio 90 Dias'
+
+			perspectiveMeasure 'Variacion % Mensual'
+
+			perspectiveMeasure AlertaTasas
+
+			perspectiveMeasure 'Margen Financiero Real'
+
+			perspectiveMeasure 'Presion Liquidez'
+
+		perspectiveTable BCRA_Principales_Variables
+
+		perspectiveTable Calendario
+
+	/// Vista para monitoreo de riesgo financiero
+	perspective 'Dashboard Riesgo'
+
+		perspectiveTable Medidas
+
+			perspectiveMeasure 'Volatilidad Diaria'
+
+			perspectiveMeasure 'Desviacion Estandar'
+
+			perspectiveMeasure 'Coeficiente Variacion'
+
+			perspectiveMeasure AlertaTasas
+
+			perspectiveMeasure AlertaInflacion
+
+			perspectiveMeasure 'Outlier Superior'
+
+			perspectiveMeasure 'Outlier Inferior'
+
+			perspectiveMeasure 'Es Outlier'
+
+			perspectiveMeasure 'Rango Intercuartil'
+
+			perspectiveMeasure 'Spread Interbancario'
+
+			perspectiveMeasure 'Indice Estabilidad Economica'
+
+			perspectiveMeasure 'Presion Liquidez'
+
+		perspectiveTable BCRA_Principales_Variables
+
+		perspectiveTable Calendario
+
+	/// Vista para seguimiento de presion inflacionaria
+	perspective 'Dashboard Inflacion'
+
+		perspectiveTable Medidas
+
+			perspectiveMeasure 'Inflacion Mensual'
+
+			perspectiveMeasure 'Inflacion Trimestral'
+
+			perspectiveMeasure 'Diferencial IPC-CER'
+
+			perspectiveMeasure 'Poder Adquisitivo Cambio'
+
+			perspectiveMeasure 'Indice IPC'
+
+			perspectiveMeasure 'Indice CER'
+
+			perspectiveMeasure 'Indice UVA'
+
+			perspectiveMeasure AlertaInflacion
+
+			perspectiveMeasure 'Variacion % Mensual'
+
+			perspectiveMeasure 'Variacion % Anual'
+
+			perspectiveMeasure 'Rentabilidad Real Depositos'
+
+			perspectiveMeasure 'Costo Real Credito'
+
+		perspectiveTable BCRA_Principales_Variables
+
+		perspectiveTable Calendario
+
+	/// Vista para dinamica del credito y oferta monetaria
+	perspective 'Dashboard Credito'
+
+		perspectiveTable Medidas
+
+			perspectiveMeasure 'Credito Crecimiento %'
+
+			perspectiveMeasure 'Credito Acumulado YoY'
+
+			perspectiveMeasure AlertaCredito
+
+			perspectiveMeasure 'Brecha Tasa Real-Inflacion'
+
+			perspectiveMeasure 'Tasa BADLAR Bancos Privados'
+
+			perspectiveMeasure 'Momentum Corto Plazo'
+
+			perspectiveMeasure 'Momentum Largo Plazo'
+
+			perspectiveMeasure 'Indice Salud Bancaria'
+
+			perspectiveMeasure 'Prestamos Bancos al sector privado'
+
+			perspectiveMeasure 'Promedio 30 Dias'
+
+			perspectiveMeasure 'Promedio 90 Dias'
+
+			perspectiveMeasure 'Promedio 6 Meses'
+
+		perspectiveTable BCRA_Principales_Variables
+
+		perspectiveTable Calendario
+
+	/// Vista completa para analisis profundo de cada variable BCRA
+	perspective 'Dashboard Variables'
+
+		perspectiveTable BCRA_Datos
+
+		perspectiveTable BCRA_Principales_Variables
+
+		perspectiveTable Calendario
+
+		perspectiveTable Medidas
+
+			perspectiveMeasure 'Suma Valores'
+
+			perspectiveMeasure 'Max Valores'
+
+			perspectiveMeasure 'Min Valores'
+
+			perspectiveMeasure 'Promedio Valores'
+
+			perspectiveMeasure 'Variacion % Mensual'
+
+			perspectiveMeasure 'Variacion % Anual'
+
+			perspectiveMeasure 'Acumulado Anual'
+
+			perspectiveMeasure 'Volatilidad Diaria'
+
+			perspectiveMeasure 'Desviacion Estandar'
+
+			perspectiveMeasure 'Coeficiente Variacion'
+
+			perspectiveMeasure 'Promedio 30 Dias'
+
+			perspectiveMeasure 'Promedio 90 Dias'
+
+			perspectiveMeasure 'Promedio 6 Meses'
+
+			perspectiveMeasure 'Mediana Valores'
+
+			perspectiveMeasure 'Cuantil 25'
+
+			perspectiveMeasure 'Cuantil 75'
+
+			perspectiveMeasure 'Rango Intercuartil'
+
+			perspectiveMeasure 'Outlier Superior'
+
+			perspectiveMeasure 'Outlier Inferior'
+
+			perspectiveMeasure 'Es Outlier'
+
+			perspectiveMeasure 'Proximidad al Minimo %'
+
+			perspectiveMeasure 'Distancia al Maximo %'
+
+			perspectiveMeasure 'Dias desde Maximo'
+
+			perspectiveMeasure 'Dias desde Minimo'
+
+			perspectiveMeasure 'Momentum Corto Plazo'
+
+			perspectiveMeasure 'Momentum Largo Plazo'
+
+			perspectiveMeasure 'Tendencia General'
+

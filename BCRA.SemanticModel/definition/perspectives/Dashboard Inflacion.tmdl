@@ -1,0 +1,33 @@
+/// Vista para seguimiento de presion inflacionaria
+perspective 'Dashboard Inflacion'
+
+	perspectiveTable Medidas
+
+		perspectiveMeasure 'Inflacion Mensual'
+
+		perspectiveMeasure 'Inflacion Trimestral'
+
+		perspectiveMeasure 'Diferencial IPC-CER'
+
+		perspectiveMeasure 'Poder Adquisitivo Cambio'
+
+		perspectiveMeasure 'Indice IPC'
+
+		perspectiveMeasure 'Indice CER'
+
+		perspectiveMeasure 'Indice UVA'
+
+		perspectiveMeasure AlertaInflacion
+
+		perspectiveMeasure 'Variacion % Mensual'
+
+		perspectiveMeasure 'Variacion % Anual'
+
+		perspectiveMeasure 'Rentabilidad Real Depositos'
+
+		perspectiveMeasure 'Costo Real Credito'
+
+	perspectiveTable BCRA_Principales_Variables
+
+	perspectiveTable Calendario
+

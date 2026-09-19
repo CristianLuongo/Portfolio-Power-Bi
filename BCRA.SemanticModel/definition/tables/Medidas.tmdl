@@ -1,0 +1,790 @@
+table Medidas
+	lineageTag: 1825e0a8-2ecd-4938-a280-a50a89758de0
+
+	/// Agregación de una sola variable. Sumar saldos, tasas o índices no representa una evolución temporal.
+	measure 'Suma Valores' = IF(HASONEVALUE(BCRA_Datos[idVariable]), SUM(BCRA_Datos[valor]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: d1fbeb70-b6f7-4f37-9a45-4d950e177541
+
+	/// Agregación de una sola variable. Sumar saldos, tasas o índices no representa una evolución temporal.
+	measure 'Max Valores' = IF(HASONEVALUE(BCRA_Datos[idVariable]), MAX(BCRA_Datos[valor]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: aff202cc-aa49-4cb6-9f30-3c8da8341303
+
+	/// Agregación de una sola variable. Sumar saldos, tasas o índices no representa una evolución temporal.
+	measure 'Min Valores' = IF(HASONEVALUE(BCRA_Datos[idVariable]), MIN(BCRA_Datos[valor]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 78398008-ea6a-41dd-917e-c7a29f4a8c55
+
+	/// Agregación de una sola variable. Sumar saldos, tasas o índices no representa una evolución temporal.
+	measure 'Promedio Valores' = IF(HASONEVALUE(BCRA_Datos[idVariable]), AVERAGE(BCRA_Datos[valor]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 87fe2732-c4d1-43f6-8a19-1d6822eb2a1e
+
+	/// Proporción decimal; mostrar como porcentaje. Último dato de la serie hasta el corte seleccionado.
+	measure 'Tasa BADLAR Bancos Privados' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 7) / 100
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 · Panorama
+		lineageTag: 1470067a-f211-4013-a163-efe87a1ec908
+
+	/// Proporción decimal; mostrar como porcentaje. Último dato de la serie hasta el corte seleccionado.
+	measure 'Tasa Préstamos entre Bancos' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 11) / 100
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 · Panorama
+		lineageTag: c260a920-dd63-4547-8feb-d36022bcacd9
+
+	/// Proporción decimal; mostrar como porcentaje. Último dato de la serie hasta el corte seleccionado.
+	measure 'Tasa Adelantos en Cta Cte' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 13) / 100
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 · Panorama
+		lineageTag: 23555827-9312-4e0a-a16c-92d13feaab55
+
+	/// Nombre anterior conservado. Es inflación interanual, no nivel de precios.
+	measure 'Indice IPC' = [Inflacion Interanual]
+		formatString: 0.0%;-0.0%;0.0%
+		isHidden
+		displayFolder: 99 · Compatibilidad
+		lineageTag: ff8799be-64b4-430e-b54b-a2e4dfb345ea
+
+	/// Último dato de la serie hasta el corte seleccionado.
+	measure 'Indice CER' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 30)
+		formatString: #,0.00
+		displayFolder: 01 · Panorama
+		lineageTag: e6768157-05fe-4c13-9b1c-5311c2ad8bb5
+
+	/// Último dato de la serie hasta el corte seleccionado.
+	measure 'Indice UVA' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 31)
+		formatString: #,0.00
+		displayFolder: 01 · Panorama
+		lineageTag: 8c8b6a64-6f6e-4819-b45b-15d0f2640dc5
+
+	/// Último dato de la serie hasta el corte seleccionado.
+	measure 'Prestamos Bancos al sector privado' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 26)
+		formatString: #,0.00
+		displayFolder: 01 · Panorama
+		lineageTag: d5277988-acd1-4531-8344-cea26d5a0e58
+
+	measure 'Variacion % Mensual' =
+			VAR Actual=[Ultimo Valor]
+			VAR Fecha=[Fecha ultimo dato]
+			VAR Previa=EOMONTH(Fecha,-1)
+			VAR Anterior=CALCULATE([Ultimo Valor],REMOVEFILTERS(Calendario),Calendario[Fechas]=Previa)
+			RETURN IF(NOT ISBLANK(Actual) && NOT ISBLANK(Anterior),DIVIDE(Actual,Anterior)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: d467d56f-d3c8-4db8-ad26-3e315b10e43a
+
+	measure 'Variacion % Anual' =
+			VAR Actual=[Ultimo Valor]
+			VAR Fecha=[Fecha ultimo dato]
+			VAR Previa=EOMONTH(Fecha,-12)
+			VAR Anterior=CALCULATE([Ultimo Valor],REMOVEFILTERS(Calendario),Calendario[Fechas]=Previa)
+			RETURN IF(NOT ISBLANK(Actual) && NOT ISBLANK(Anterior),DIVIDE(Actual,Anterior)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: ffd69317-4b08-4117-8fa6-0d6da3a4db0b
+
+	measure 'Acumulado Anual' =
+			VAR Actual=[Ultimo Valor]
+			VAR Fecha=[Fecha ultimo dato]
+			VAR Anterior=CALCULATE([Ultimo Valor],REMOVEFILTERS(Calendario),Calendario[Fechas]=DATE(YEAR(Fecha)-1,12,31))
+			RETURN IF(NOT ISBLANK(Actual) && NOT ISBLANK(Anterior),DIVIDE(Actual,Anterior)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: c1d8a555-2bae-4b57-9bfa-0c429b0d84da
+
+	measure 'Promedio 30 Dias' =
+			VAR Fecha=[Fecha ultimo dato]
+			RETURN IF(NOT ISBLANK(Fecha),CALCULATE([Promedio Valores],REMOVEFILTERS(Calendario),
+			    DATESBETWEEN(Calendario[Fechas],Fecha-29,Fecha)))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: ceb52de5-fcea-4de6-b40e-9a2efba53fd0
+
+	measure 'Promedio 90 Dias' =
+			VAR Fecha=[Fecha ultimo dato]
+			RETURN IF(NOT ISBLANK(Fecha),CALCULATE([Promedio Valores],REMOVEFILTERS(Calendario),
+			    DATESBETWEEN(Calendario[Fechas],Fecha-89,Fecha)))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: a11f07e7-48ca-4ef7-bebe-150feed8c34d
+
+	measure 'Promedio 6 Meses' =
+			VAR Fecha=[Fecha ultimo dato]
+			RETURN IF(NOT ISBLANK(Fecha),CALCULATE([Promedio Valores],REMOVEFILTERS(Calendario),
+			    DATESBETWEEN(Calendario[Fechas],Fecha-179,Fecha)))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 15edc7fb-b41e-409d-96b9-0d5213c6ea60
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Volatilidad Diaria' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: a1caff33-e0e6-43eb-b18c-c69bf6409b11
+
+	measure 'Desviacion Estandar' = IF(HASONEVALUE(BCRA_Datos[idVariable]),STDEV.S(BCRA_Datos[valor]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 450d6b96-a8bc-4447-be69-cdf7531ce356
+
+	measure 'Coeficiente Variacion' = DIVIDE([Desviacion Estandar],[Promedio Valores])
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 26c48627-4b37-49d7-89ba-5602a1e7d749
+
+	/// Diferencia entre tasas de referencia; no equivale al margen contable de un banco.
+	measure 'Spread Tasas Active-Pasivas' = ([Tasa Adelantos en Cta Cte] - [Tasa BADLAR Bancos Privados]) * 100
+		formatString: 0.00" pp";-0.00" pp";0.00" pp"
+		displayFolder: 03 · Tasas y credito
+		lineageTag: 95e6e258-1902-4bd4-a912-15b03c708f31
+
+	measure 'Spread Interbancario' = ([Tasa Préstamos entre Bancos] - [Tasa BADLAR Bancos Privados]) * 100
+		formatString: 0.00" pp";-0.00" pp";0.00" pp"
+		displayFolder: 03 · Tasas y credito
+		lineageTag: bb9080ca-9031-4833-977a-6e080790e22b
+
+	/// Estimación mensual ex post. BADLAR al cierre previo; sin previsión de tasas ni inflación.
+	measure 'Tasa Real BADLAR' =
+			VAR Fecha=MAX('Analisis Mensual'[fecha])
+			VAR Tasa=CALCULATE([Tasa BADLAR Bancos Privados],REMOVEFILTERS(Calendario),Calendario[Fechas]=EOMONTH(Fecha,-1))
+			VAR IPC=[IPC Mensual Observado]
+			RETURN IF(NOT ISBLANK(Tasa) && NOT ISBLANK(IPC),DIVIDE(1+Tasa*DAY(Fecha)/365,1+IPC)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 · Ahorro
+		lineageTag: 5cec274b-4f38-4694-a7e7-b535004c7974
+
+	/// Proporción decimal; mostrar como porcentaje. Último dato de la serie hasta el corte seleccionado.
+	measure 'Inflacion Mensual' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 27) / 100
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 · Panorama
+		lineageTag: b8463f12-187f-424e-9b4e-1e7989023783
+
+	measure 'Inflacion Trimestral' =
+			VAR Fecha=MAX('Analisis Mensual'[fecha])
+			VAR Ventana=FILTER(ALL('Analisis Mensual'),'Analisis Mensual'[fecha]>EOMONTH(Fecha,-3) && 'Analisis Mensual'[fecha]<=Fecha)
+			RETURN IF(COUNTROWS(Ventana)=3 && COUNTX(Ventana,'Analisis Mensual'[inflacionMensual])=3,
+			    PRODUCTX(Ventana,1+'Analisis Mensual'[inflacionMensual])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: fc159b80-dfcb-4740-99f1-06859396acc5
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Diferencial IPC-CER' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: 9ed960f1-c3bb-45f9-9fb3-f3c24816e001
+
+	measure 'Poder Adquisitivo Cambio' = DIVIDE(100,[Factor IPC Simulado])
+		formatString: 0.0
+		displayFolder: 04 · Ahorro
+		lineageTag: b43fd894-23f0-4dcd-a46a-f631074c9b0b
+
+	measure 'Credito Crecimiento %' =
+			VAR Fecha=MAX('Analisis Mensual'[fecha])
+			VAR Actual=[Credito Cierre Mensual]
+			VAR Anterior=CALCULATE(MAX('Analisis Mensual'[credito]), REMOVEFILTERS(Calendario), 'Analisis Mensual'[fecha]=EOMONTH(Fecha,-1))
+			RETURN IF(NOT ISBLANK(Actual) && NOT ISBLANK(Anterior), DIVIDE(Actual,Anterior)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 03 · Tasas y credito
+		lineageTag: 2c49f0b1-ef88-41b9-8c57-9980b91631ec
+
+	measure 'Credito Acumulado YoY' =
+			VAR Fecha=MAX('Analisis Mensual'[fecha])
+			VAR Actual=[Credito Cierre Mensual]
+			VAR Anterior=CALCULATE(MAX('Analisis Mensual'[credito]), REMOVEFILTERS(Calendario), 'Analisis Mensual'[fecha]=EOMONTH(Fecha,-12))
+			RETURN IF(NOT ISBLANK(Actual) && NOT ISBLANK(Anterior), DIVIDE(Actual,Anterior)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 03 · Tasas y credito
+		lineageTag: 727b06d1-88ec-41c7-9d56-38cc63c976fe
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Brecha Tasa Real-Inflacion' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: 16683715-67d3-4d4b-8ec1-7401b6fa0aef
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Indice Salud Bancaria' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: bf9b9de3-d90f-47ac-a2b7-b2814ba2d9f7
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Indice Estabilidad Economica' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: a135393f-6a27-4d2a-891a-756cbe3ca21f
+
+	measure 'Proximidad al Minimo %' = IF(NOT ISBLANK([Ultimo Valor]),DIVIDE([Ultimo Valor]-[Min Valores],[Min Valores]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 436f1652-9c6b-4520-a647-e579ddc05652
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure AlertaInflacion = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: 4f88e8bd-0edb-4b2f-9cd8-0001e84f2add
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure AlertaTasas = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: ae3da224-5d4d-4da6-9115-05505ebe152a
+
+	measure 'Dias desde Maximo' =
+			VAR Corte=[Fecha de corte]
+			VAR Historia=CALCULATETABLE(BCRA_Datos,REMOVEFILTERS(Calendario),BCRA_Datos[fecha]<=Corte)
+			VAR Extremo=MAXX(Historia,BCRA_Datos[valor])
+			VAR Fecha=MAXX(FILTER(Historia,BCRA_Datos[valor]=Extremo),BCRA_Datos[fecha])
+			RETURN IF(HASONEVALUE(BCRA_Datos[idVariable]) && NOT ISBLANK(Fecha),DATEDIFF(Fecha,Corte,DAY))
+		formatString: 0
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 21d63e7a-3810-49f2-961f-bb5e38566854
+
+	measure 'Dias desde Minimo' =
+			VAR Corte=[Fecha de corte]
+			VAR Historia=CALCULATETABLE(BCRA_Datos,REMOVEFILTERS(Calendario),BCRA_Datos[fecha]<=Corte)
+			VAR Extremo=MINX(Historia,BCRA_Datos[valor])
+			VAR Fecha=MAXX(FILTER(Historia,BCRA_Datos[valor]=Extremo),BCRA_Datos[fecha])
+			RETURN IF(HASONEVALUE(BCRA_Datos[idVariable]) && NOT ISBLANK(Fecha),DATEDIFF(Fecha,Corte,DAY))
+		formatString: 0
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: d35a4981-c6a7-492a-bca5-b745c380cae9
+
+	measure 'Distancia al Maximo %' = IF(NOT ISBLANK([Ultimo Valor]),DIVIDE([Max Valores]-[Ultimo Valor],[Max Valores]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: b7b597e5-e1e5-4a27-8100-3f33af6cec6c
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure AlertaCredito = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: 976ee78a-7016-41a5-b93f-9175e5f00875
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Spread Diferencial' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: 20786306-7965-45a3-bea4-cf94e5aecd60
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Presion Liquidez' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: d3d665be-9d15-4a25-b526-2ac2d09c11a3
+
+	measure 'Rentabilidad Real Depositos' =
+			VAR Fecha=[Fecha mensual comparable]
+			RETURN IF(NOT ISBLANK(Fecha),CALCULATE([Rentabilidad Real Mensual],REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Fecha))
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 · Ahorro
+		lineageTag: 634f38d1-937e-495b-bbed-0a963a4ad423
+
+	/// Referencia mensual ex post; no es costo financiero total: excluye cargos, impuestos y comisiones.
+	measure 'Costo Real Credito' =
+			VAR Fecha=MAX('Analisis Mensual'[fecha])
+			VAR Tasa=CALCULATE([Tasa Adelantos en Cta Cte],REMOVEFILTERS(Calendario),Calendario[Fechas]=EOMONTH(Fecha,-1))
+			VAR IPC=[IPC Mensual Observado]
+			RETURN IF(NOT ISBLANK(Tasa) && NOT ISBLANK(IPC),DIVIDE(1+Tasa*DAY(Fecha)/365,1+IPC)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 03 · Tasas y credito
+		lineageTag: bc54000e-80ac-4e42-abbc-4f0934bfc92a
+
+	/// Diferencia entre estimaciones mensuales, no margen del sistema financiero.
+	measure 'Margen Financiero Real' = [Costo Real Credito] - [Rentabilidad Real Mensual]
+		formatString: 0.0%;-0.0%;0.0%
+		isHidden
+		displayFolder: 99 · Compatibilidad
+		lineageTag: 3ee84323-6582-412f-be6e-df62a2eb5af2
+
+	measure 'Momentum Corto Plazo' = IF(NOT ISBLANK([Promedio 90 Dias]),DIVIDE([Promedio 30 Dias],[Promedio 90 Dias])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 5325790f-b12b-4bf6-b605-eddca347dbcd
+
+	measure 'Momentum Largo Plazo' = IF(NOT ISBLANK([Promedio 90 Dias]),DIVIDE([Promedio 90 Dias],[Promedio 6 Meses])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 05fdc443-5037-446b-b4b8-ae336f395687
+
+	measure 'Tendencia General' = IF(ISBLANK([Momentum Corto Plazo]),BLANK(),SWITCH(TRUE(),[Momentum Corto Plazo]>0.02,"ALCISTA",[Momentum Corto Plazo]<-0.02,"BAJISTA","LATERAL"))
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: ae0dc5d5-f2e0-4214-b10e-654d4af61c77
+
+	measure 'Cuantil 75' = IF(HASONEVALUE(BCRA_Datos[idVariable]),PERCENTILE.INC(BCRA_Datos[valor],0.75))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 9ef5e49c-9ab2-47c7-b5fa-87c336241c14
+
+	measure 'Cuantil 25' = IF(HASONEVALUE(BCRA_Datos[idVariable]),PERCENTILE.INC(BCRA_Datos[valor],0.25))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: f9e3b526-34cc-45cd-a786-08a899c4ad23
+
+	measure 'Rango Intercuartil' = [Cuantil 75]-[Cuantil 25]
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: dec78c96-c44d-4e11-8ea0-dd0ad9e17a0d
+
+	measure 'Mediana Valores' = IF(HASONEVALUE(BCRA_Datos[idVariable]),MEDIAN(BCRA_Datos[valor]))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: fd6d9cec-205c-447d-9c5e-c93d2d640f42
+
+	measure 'Outlier Superior' = [Cuantil 75]+1.5*[Rango Intercuartil]
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 64248ed7-b117-48af-bca2-f98885cdf20e
+
+	measure 'Outlier Inferior' = [Cuantil 25]-1.5*[Rango Intercuartil]
+		formatString: #,0.00
+		isHidden
+		displayFolder: 99 · Auxiliares
+		lineageTag: 22e8fdb6-cb16-4f9e-b452-587d92d78854
+
+	/// Retirada del portafolio: definición anterior sin metodología suficiente o comparación de unidades incompatibles. Consultar copia original.
+	measure 'Es Outlier' = BLANK()
+		isHidden
+		displayFolder: 99 · Retiradas
+		lineageTag: 86e873ef-839e-405a-ad0b-3563d77c75fd
+
+	measure 'Fecha de corte' = MIN(MAX(Calendario[Fechas]), TODAY())
+		formatString: dd/MM/yyyy
+		isHidden
+		displayFolder: 01 · Panorama
+		lineageTag: aecacf03-1022-4c14-9fab-ecc90f36f26f
+
+	/// Última observación de una única serie hasta la fecha de corte; no implica fecha de publicación.
+	measure 'Fecha ultimo dato' =
+			VAR Corte = [Fecha de corte]
+			RETURN IF(CALCULATE(HASONEVALUE(BCRA_Datos[idVariable]),REMOVEFILTERS(Calendario)),
+			    CALCULATE(MAX(BCRA_Datos[fecha]), REMOVEFILTERS(Calendario), BCRA_Datos[fecha] <= Corte))
+		formatString: dd/MM/yyyy
+		displayFolder: 01 · Panorama
+		lineageTag: 4b3a1928-784c-4980-aa82-9e12e19ba31f
+
+	/// Último dato disponible. Devuelve vacío cuando se mezclan variables de distintas unidades.
+	measure 'Ultimo Valor' =
+			VAR Fecha = [Fecha ultimo dato]
+			RETURN IF(NOT ISBLANK(Fecha), CALCULATE(MAX(BCRA_Datos[valor]), REMOVEFILTERS(Calendario), BCRA_Datos[fecha] = Fecha))
+		formatString: #,0.00
+		displayFolder: 01 · Panorama
+		lineageTag: 265dd662-0d2d-409c-8a6b-164e6e98f539
+
+	measure 'Fecha Tasa BADLAR Bancos Privados' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 7)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 85d1fdb4-b47c-4a1b-874c-86c58dc1adbc
+
+	measure 'Fecha Tasa Préstamos entre Bancos' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 11)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 0a5834db-81e0-4490-8dc7-576a477182fa
+
+	/// Proporción decimal; mostrar como porcentaje. Último dato de la serie hasta el corte seleccionado.
+	measure 'Tasa Depositos 30 Dias' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 12) / 100
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 · Panorama
+		lineageTag: c45b7a3c-7fa9-4b08-915d-b050ef4fc85e
+
+	measure 'Fecha Tasa Depositos 30 Dias' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 12)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 1aa80d6b-c74b-4e23-8138-4d49734845fd
+
+	measure 'Fecha Tasa Adelantos en Cta Cte' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 13)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: c1fe2a39-95c1-4d88-a5b0-0b77990fbfba
+
+	/// Último dato de la serie hasta el corte seleccionado.
+	measure 'Dolar Mayorista' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 5)
+		formatString: #,0.00
+		displayFolder: 01 · Panorama
+		lineageTag: 50f17b43-73a5-4d99-8aaa-a861f2f16667
+
+	measure 'Fecha Dolar Mayorista' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 5)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: f1625e62-ea94-488c-b947-a3d59c5d55c3
+
+	measure 'Fecha Prestamos Bancos al sector privado' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 26)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 12175ddb-cb70-4798-81d8-3ff920824521
+
+	measure 'Fecha Indice CER' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 30)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 35fec688-b158-4df5-b45b-46d4971b5d15
+
+	measure 'Fecha Indice UVA' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 31)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: d518cfb2-04a6-4a88-adf4-deba3f4d7da1
+
+	measure 'Fecha Inflacion Mensual' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 27)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: b7fcc33e-3a90-42cd-8f49-48236a488b93
+
+	/// Proporción decimal; mostrar como porcentaje. Último dato de la serie hasta el corte seleccionado.
+	measure 'Inflacion Interanual' = CALCULATE([Ultimo Valor], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 28) / 100
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 · Panorama
+		lineageTag: cd23ad8b-a30a-485a-a852-b4a6142df8ec
+
+	measure 'Fecha Inflacion Interanual' = CALCULATE([Fecha ultimo dato], REMOVEFILTERS(BCRA_Principales_Variables), BCRA_Datos[idVariable] = 28)
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 40387f44-4620-49e9-8c8d-2ac3e410f122
+
+	measure 'BADLAR Promedio Mensual' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[badlar]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: 64b4a7c7-1aa3-4864-b7de-9e971c313cfd
+
+	measure 'Interbancaria Promedio Mensual' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[interbancaria]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: ee8480ec-82be-47c2-8f5d-3b066c5e3ae7
+
+	measure 'Depositos Promedio Mensual' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[depositos]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: 3aedda69-e55b-4615-a30c-9dd23e9438f4
+
+	measure 'Adelantos Promedio Mensual' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[adelantos]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: da8770b2-f1d3-437d-9877-146afbfcbaea
+
+	measure 'Dolar Cierre Mensual' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[dolar]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: #,0.00
+		displayFolder: 02 · Series mensuales
+		lineageTag: 70032e77-c2ff-4233-8896-e27773fb72f9
+
+	measure 'Credito Cierre Mensual' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[credito]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: #,0
+		displayFolder: 02 · Series mensuales
+		lineageTag: b2c5374d-c27c-483c-8c2b-3759e3e65581
+
+	measure 'IPC Mensual Observado' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[inflacionMensual]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: ede2ad37-196b-4bd2-90de-617b43098d75
+
+	measure 'IPC Interanual Observado' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[inflacionInteranual]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: 6546f9cb-eab3-42d2-8f57-1602ff58b26a
+
+	measure 'IPC Nivel Reconstruido' =
+			VAR Fecha = MAX('Analisis Mensual'[fecha])
+			RETURN CALCULATE(MAX('Analisis Mensual'[indicePrecios]), 'Analisis Mensual'[fecha] = Fecha)
+		formatString: #,0.00
+		displayFolder: 02 · Series mensuales
+		lineageTag: 9e35bf15-914c-494a-a9fe-fb6280ff3072
+
+	measure 'Fecha mensual comparable' =
+			VAR Corte = [Fecha de corte]
+			RETURN CALCULATE(MAX('Analisis Mensual'[fecha]), REMOVEFILTERS(Calendario),
+			    'Analisis Mensual'[fecha] <= Corte, NOT ISBLANK('Analisis Mensual'[inflacionMensual]),
+			    NOT ISBLANK('Analisis Mensual'[factorDepositos]), NOT ISBLANK('Analisis Mensual'[credito]))
+		formatString: dd/MM/yyyy
+		isHidden
+		displayFolder: 01 · Panorama
+		lineageTag: 790461c3-b114-438b-9f5a-a9d8f80982d7
+
+	measure 'Spread Mensual Adelantos Depositos' = IF(NOT ISBLANK([Adelantos Promedio Mensual]) && NOT ISBLANK([Depositos Promedio Mensual]),([Adelantos Promedio Mensual] - [Depositos Promedio Mensual]) * 100)
+		formatString: 0.00" pp";-0.00" pp";0.00" pp"
+		displayFolder: 03 · Tasas y credito
+		lineageTag: a3e66f90-8845-4727-b854-5664dfcdbfb3
+
+	/// Ajuste interanual por IPC. El saldo incluye moneda local y extranjera expresada en pesos, con efecto de valuación cambiaria.
+	measure 'Credito Real YoY' =
+			VAR Nominal=[Credito Acumulado YoY]
+			VAR Inflacion=[IPC Interanual Observado]
+			RETURN IF(NOT ISBLANK(Nominal) && NOT ISBLANK(Inflacion), DIVIDE(1+Nominal,1+Inflacion)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 03 · Tasas y credito
+		lineageTag: aabeffb2-f7c6-4d32-bf5d-11943e541e6d
+
+	measure 'Credito Real YoY Ultimo' =
+			VAR Fecha=[Fecha mensual comparable]
+			RETURN IF(NOT ISBLANK(Fecha), CALCULATE([Credito Real YoY],REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Fecha))
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 · Panorama
+		lineageTag: 8ef245e5-1cd1-4b4f-a892-faa7fce5d4c5
+
+	/// Rendimiento ex post aproximado: TNA de depósitos al cierre del mes previo × días del mes / 365, deflactado por IPC del mes.
+	measure 'Rentabilidad Real Mensual' =
+			VAR Fecha=MAX('Analisis Mensual'[fecha])
+			VAR Factor=CALCULATE(MAX('Analisis Mensual'[factorDepositos]),'Analisis Mensual'[fecha]=Fecha)
+			VAR Inflacion=[IPC Mensual Observado]
+			RETURN IF(NOT ISBLANK(Factor) && NOT ISBLANK(Inflacion), DIVIDE(Factor,1+Inflacion)-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 · Ahorro
+		lineageTag: 901400f2-1c44-41e7-90cc-a5532a24d5a8
+
+	measure 'Inflacion Acumulada Año' =
+			VAR Fecha=MAX('Analisis Mensual'[fecha])
+			VAR Ventana=FILTER(ALL('Analisis Mensual'),YEAR('Analisis Mensual'[fecha])=YEAR(Fecha) && 'Analisis Mensual'[fecha]<=Fecha)
+			RETURN IF(COUNTROWS(Ventana)=MONTH(Fecha) && COUNTX(Ventana,'Analisis Mensual'[inflacionMensual])=MONTH(Fecha),
+			    PRODUCTX(Ventana,1+'Analisis Mensual'[inflacionMensual])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 · Series mensuales
+		lineageTag: ca4f0bd2-041a-421e-b604-9988d9e612c4
+
+	measure 'Capital Inicial' = SELECTEDVALUE('Monto Inicial'[Monto],1000000)
+		formatString: "$ "#,0
+		displayFolder: 04 · Ahorro
+		lineageTag: a596323e-3591-42be-8b00-37be0aac0dbd
+
+	measure 'Fecha Inicio Simulacion' =
+			VAR CorteSeleccionado=MIN(MAXX(ALLSELECTED(Calendario),Calendario[Fechas]),TODAY())
+			VAR Ultima=CALCULATE(MAX('Analisis Mensual'[fecha]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]<=CorteSeleccionado,NOT ISBLANK('Analisis Mensual'[indicePrecios]))
+			VAR Primera=CALCULATE(MIN('Analisis Mensual'[fecha]),REMOVEFILTERS(Calendario),NOT ISBLANK('Analisis Mensual'[indicePrecios]))
+			VAR Predeterminada=MAX(Primera,EOMONTH(Ultima,-12))
+			RETURN IF(NOT ISBLANK(Ultima),SELECTEDVALUE('Inicio Simulacion'[Fecha],Predeterminada))
+		formatString: dd/MM/yyyy
+		displayFolder: 04 · Ahorro
+		lineageTag: d6c279ca-a899-4b78-9623-60ebca72ac7e
+
+	measure 'Fecha Fin Simulacion' =
+			VAR Corte=[Fecha de corte]
+			VAR Fin=CALCULATE(MAX('Analisis Mensual'[fecha]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]<=Corte,
+			    NOT ISBLANK('Analisis Mensual'[indicePrecios]),NOT ISBLANK('Analisis Mensual'[dolar]))
+			RETURN IF(ISINSCOPE(Calendario[Inicio del mes]) && EOMONTH(MAX(Calendario[Fechas]),0)<>Fin,BLANK(),Fin)
+		formatString: dd/MM/yyyy
+		displayFolder: 04 · Ahorro
+		lineageTag: 84418516-2a74-4bf0-b59d-7768d93b90be
+
+	measure 'Factor Depositos Simulado' =
+			VAR Inicio=[Fecha Inicio Simulacion]
+			VAR Fin=[Fecha Fin Simulacion]
+			VAR Ventana=FILTER(ALL('Analisis Mensual'),'Analisis Mensual'[fecha]>Inicio && 'Analisis Mensual'[fecha]<=Fin)
+			VAR Meses=DATEDIFF(Inicio,Fin,MONTH)
+			RETURN IF(NOT ISBLANK(Inicio) && NOT ISBLANK(Fin) && Fin>=Inicio && COUNTROWS(Ventana)=Meses && COUNTX(Ventana,'Analisis Mensual'[factorDepositos])=Meses,
+			    IF(Meses=0,1,PRODUCTX(Ventana,'Analisis Mensual'[factorDepositos])))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 04 · Ahorro
+		lineageTag: 74608683-9ff5-4240-848a-dd4a3779f6b3
+
+	measure 'Factor IPC Simulado' =
+			VAR Inicio=[Fecha Inicio Simulacion]
+			VAR Fin=[Fecha Fin Simulacion]
+			VAR Inicial=CALCULATE(MAX('Analisis Mensual'[indicePrecios]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Inicio)
+			VAR Final=CALCULATE(MAX('Analisis Mensual'[indicePrecios]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Fin)
+			RETURN IF(NOT ISBLANK(Inicio) && NOT ISBLANK(Fin) && Fin>=Inicio && NOT ISBLANK(Inicial) && NOT ISBLANK(Final),DIVIDE(Final,Inicial))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 04 · Ahorro
+		lineageTag: 5e2694fe-5973-44c7-88cf-5be71f28e2fc
+
+	measure 'Factor Dolar Simulado' =
+			VAR Inicio=[Fecha Inicio Simulacion]
+			VAR Fin=[Fecha Fin Simulacion]
+			VAR Inicial=CALCULATE(MAX('Analisis Mensual'[dolar]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Inicio)
+			VAR Final=CALCULATE(MAX('Analisis Mensual'[dolar]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Fin)
+			RETURN IF(NOT ISBLANK(Inicio) && NOT ISBLANK(Fin) && Fin>=Inicio && NOT ISBLANK(Inicial) && NOT ISBLANK(Final),DIVIDE(Final,Inicial))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 04 · Ahorro
+		lineageTag: 5333f96e-bd86-4a03-a828-069831a14955
+
+	measure 'Factor UVA Simulado' =
+			VAR Inicio=[Fecha Inicio Simulacion]
+			VAR Fin=[Fecha Fin Simulacion]
+			VAR Inicial=CALCULATE(MAX('Analisis Mensual'[uva]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Inicio)
+			VAR Final=CALCULATE(MAX('Analisis Mensual'[uva]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Fin)
+			RETURN IF(NOT ISBLANK(Inicio) && NOT ISBLANK(Fin) && Fin>=Inicio && NOT ISBLANK(Inicial) && NOT ISBLANK(Final),DIVIDE(Final,Inicial))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 04 · Ahorro
+		lineageTag: fb9c950c-7318-4891-aa61-f14d882e9719
+
+	measure 'Factor CER Simulado' =
+			VAR Inicio=[Fecha Inicio Simulacion]
+			VAR Fin=[Fecha Fin Simulacion]
+			VAR Inicial=CALCULATE(MAX('Analisis Mensual'[cer]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Inicio)
+			VAR Final=CALCULATE(MAX('Analisis Mensual'[cer]),REMOVEFILTERS(Calendario),'Analisis Mensual'[fecha]=Fin)
+			RETURN IF(NOT ISBLANK(Inicio) && NOT ISBLANK(Fin) && Fin>=Inicio && NOT ISBLANK(Inicial) && NOT ISBLANK(Final),DIVIDE(Final,Inicial))
+		formatString: #,0.00
+		isHidden
+		displayFolder: 04 · Ahorro
+		lineageTag: 6c96512e-4db0-4704-9f75-4623e8b1aaeb
+
+	measure 'Capital Plazo Nominal' = [Capital Inicial]*[Factor Depositos Simulado]
+		formatString: "$ "#,0
+		displayFolder: 04 · Ahorro
+		lineageTag: 116d5a0f-a6b6-4495-ab29-25c73fcadfac
+
+	measure 'Capital Plazo Real' = DIVIDE([Capital Plazo Nominal],[Factor IPC Simulado])
+		formatString: "$ "#,0
+		displayFolder: 04 · Ahorro
+		lineageTag: 4a6a654f-a178-49a6-8c20-4c07fcac20f0
+
+	measure 'Capital Necesario IPC' = [Capital Inicial]*[Factor IPC Simulado]
+		formatString: "$ "#,0
+		displayFolder: 04 · Ahorro
+		lineageTag: fe22efac-13ec-4872-96af-db5e81a7605c
+
+	measure 'Capital Referencia Dolar' = [Capital Inicial]*[Factor Dolar Simulado]
+		formatString: "$ "#,0
+		displayFolder: 04 · Ahorro
+		lineageTag: ed78d230-6d7d-4495-b944-4225166d7cb8
+
+	measure 'Capital Ajustado UVA' = [Capital Inicial]*[Factor UVA Simulado]
+		formatString: "$ "#,0
+		displayFolder: 04 · Ahorro
+		lineageTag: 399ef92e-9ad8-4fe9-873a-d0480fca4596
+
+	measure 'Capital Ajustado CER' = [Capital Inicial]*[Factor CER Simulado]
+		formatString: "$ "#,0
+		displayFolder: 04 · Ahorro
+		lineageTag: 252cc7ef-eaaf-41c3-8a9f-41bbf9a2f4fe
+
+	measure 'Rentabilidad Real Simulada' = IF(NOT ISBLANK([Capital Plazo Real]),DIVIDE([Capital Plazo Real],[Capital Inicial])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 · Ahorro
+		lineageTag: 6e2bbc67-8dff-4089-b919-33c6c6d60a17
+
+	measure 'Dolar Base 100' = 100*[Factor Dolar Simulado]
+		formatString: 0.0
+		displayFolder: 04 · Ahorro
+		lineageTag: 7681002f-b613-4a25-9e31-38bf29ef83ee
+
+	measure 'Precios Base 100' = 100*[Factor IPC Simulado]
+		formatString: 0.0
+		displayFolder: 04 · Ahorro
+		lineageTag: 0b1e7791-06e2-4eae-a96f-c19c1e152758
+
+	measure 'UVA Base 100' = 100*[Factor UVA Simulado]
+		formatString: 0.0
+		displayFolder: 04 · Ahorro
+		lineageTag: 5be8a5fa-6dd4-4c8b-8069-e3d0260d609b
+
+	measure 'CER Base 100' = 100*[Factor CER Simulado]
+		formatString: 0.0
+		displayFolder: 04 · Ahorro
+		lineageTag: 773b01ea-588c-4939-afd1-73c3e9c71bee
+
+	measure 'Periodo Simulado' =
+			VAR Inicio=[Fecha Inicio Simulacion]
+			VAR Fin=[Fecha Fin Simulacion]
+			RETURN IF(ISBLANK(Fin) || Fin<Inicio,"Seleccioná un inicio anterior al último mes disponible",
+			    "Del " & FORMAT(Inicio,"dd/MM/yyyy") & " al " & FORMAT(Fin,"dd/MM/yyyy"))
+		displayFolder: 04 · Ahorro
+		lineageTag: 4acca65b-1416-4db1-b92c-6470637e12ce
+
+	measure 'Primera Observacion' = CALCULATE(MIN(BCRA_Datos[fecha]),REMOVEFILTERS(Calendario))
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 43b9919e-d46c-4ef1-a929-990e1fb32f1e
+
+	measure 'Ultima Observacion' = CALCULATE(MAX(BCRA_Datos[fecha]),REMOVEFILTERS(Calendario))
+		formatString: dd/MM/yyyy
+		displayFolder: 05 · Calidad
+		lineageTag: 650336a2-c130-4275-b85b-0f42ef7ca291
+
+	measure Observaciones = CALCULATE(COUNTROWS(BCRA_Datos),REMOVEFILTERS(Calendario))
+		formatString: #,0
+		displayFolder: 05 · Calidad
+		lineageTag: 87aaead6-2b76-4d46-b08c-5a695561984f
+
+	measure 'Dias Desde Observacion' = VAR Fecha=[Ultima Observacion] RETURN IF(NOT ISBLANK(Fecha),DATEDIFF(Fecha,TODAY(),DAY))
+		formatString: 0
+		displayFolder: 05 · Calidad
+		lineageTag: f15ad062-dc91-46e9-bfc0-569777394ce5
+
+	measure 'Series Cargadas' = CALCULATE(DISTINCTCOUNT(BCRA_Datos[idVariable]),REMOVEFILTERS(Calendario))
+		formatString: 0
+		displayFolder: 05 · Calidad
+		lineageTag: 2e811603-c51f-49be-bfcf-69ac3692d9da
+
+	measure Duplicados = COUNTROWS(BCRA_Datos)-COUNTROWS(SUMMARIZE(BCRA_Datos,BCRA_Datos[idVariable],BCRA_Datos[fecha]))
+		formatString: 0
+		displayFolder: 05 · Calidad
+		lineageTag: 90d57bf0-5f64-4bb7-b029-95822e65449b
+
+	measure 'Meses Sin IPC' = COUNTROWS(FILTER(ALL('Analisis Mensual'),ISBLANK('Analisis Mensual'[inflacionMensual])))
+		formatString: 0
+		displayFolder: 05 · Calidad
+		lineageTag: e428d9a8-9acc-4b9e-80ca-34eb64ca4799
+
+	measure 'Actualizacion Argentina' = MAX('Control Actualizacion'[ActualizadoUTC])-TIME(3,0,0)
+		formatString: dd/MM/yyyy HH:mm
+		displayFolder: 05 · Calidad
+		lineageTag: 6a8d15ff-9a98-409e-852d-f7c87b0d4c5d
+
+	measure 'Estado Datos' =
+			VAR Faltan=10-[Series Cargadas]
+			RETURN SWITCH(TRUE(),Faltan>0,"Faltan "&FORMAT(Faltan,"0")&" series",[Duplicados]>0,"Revisar duplicados",
+			    [Meses Sin IPC]>0,"Hay meses sin IPC: comparaciones incompletas","10 series · sin duplicados ni meses faltantes de IPC")
+		displayFolder: 05 · Calidad
+		lineageTag: 920e8fca-c281-4f8b-a59d-9f2c06d1e9af
+
+	partition Medidas = m
+		mode: import
+		queryGroup: Aux
+		source =
+				let
+				    Origen = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Columna1 = _t]),
+				    #"Tipo cambiado" = Table.TransformColumnTypes(Origen,{{"Columna1", type text}}),
+				    #"Columnas quitadas" = Table.RemoveColumns(#"Tipo cambiado",{"Columna1"})
+				in
+				    #"Columnas quitadas"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegación
+

@@ -1,0 +1,21 @@
+relationship AutoDetected_dd7a19d7-5e81-4793-89c1-d7a99830525a
+	fromColumn: BCRA_Datos.idVariable
+	toColumn: BCRA_Principales_Variables.idVariable
+
+relationship ffca01a5-a4e6-8f31-75bb-2c11758dc15d
+	fromColumn: BCRA_Datos.fecha
+	toColumn: Calendario.Fechas
+
+relationship 617d1993-1001-0b93-2db0-f5473951f946
+	fromColumn: Aux_Puente_EjeX_Calendario.Fechas
+	toColumn: Calendario.Fechas
+
+relationship 72e79134-a83f-33be-5a84-4331c3e3dfd4
+	crossFilteringBehavior: bothDirections
+	fromColumn: Aux_Puente_EjeX_Calendario.ContarMes
+	toColumn: 'Eje X Dinamico'.'Eje X Dinamico Orden'
+
+relationship Portafolio_Mensual_Calendario
+	fromColumn: 'Analisis Mensual'.fecha
+	toColumn: Calendario.Fechas
+

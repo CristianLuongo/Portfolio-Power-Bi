@@ -1,0 +1,56 @@
+table BCRA_Datos
+	isHidden
+	lineageTag: b76db830-00db-454e-8809-04e794f79d98
+
+	column idVariable
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7de1600e-618f-49a5-afff-24f2181b96fa
+		summarizeBy: none
+		sourceColumn: idVariable
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column fecha
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 6492cd31-6462-4ee7-9aa5-bf5c50bfabae
+		summarizeBy: none
+		sourceColumn: fecha
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column valor
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: 9bd504cc-499c-4aa3-80e3-369fea5eab9c
+		summarizeBy: sum
+		sourceColumn: valor
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition BCRA_Datos = m
+		mode: import
+		source =
+				let
+				    Origen = ConsultarDatosBCRA("5,7,11,12,13,26,27,28,30,31", #date(Periodo -5 ,1,1), Date.From(DateTimeZone.SwitchZone(DateTimeZone.FixedUtcNow(), -3)))
+				in
+				    Origen
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navegación
+
+	annotation PBI_ResultType = Table
+

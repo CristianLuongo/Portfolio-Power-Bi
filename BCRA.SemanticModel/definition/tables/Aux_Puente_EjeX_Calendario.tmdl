@@ -1,0 +1,46 @@
+table Aux_Puente_EjeX_Calendario
+	lineageTag: c41d19b2-e7c0-4af0-835c-c50a6dfdf7c2
+
+	column Fechas
+		formatString: General Date
+		lineageTag: 195ee753-609a-4cbe-a6fc-1e761de7f4a6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Calendario[Fechas]
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContarMes
+		formatString: 0
+		lineageTag: bf2a3668-ed12-4cd7-a7d6-5b6952be4bf9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ContarMes]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Aux_Puente_EjeX_Calendario = calculated
+		mode: import
+		source = ```
+				
+				VAR ColumnaFechas = DISTINCT(Calendario[Fechas])
+				VAR Resultado =
+				    GENERATE(
+				        ColumnaFechas,
+				        VAR ContarMes = DATEDIFF( MIN( Calendario[Fechas] ), Calendario[Fechas], MONTH )
+				        RETURN
+				        ROW(
+				            "ContarMes", 
+				            SWITCH( TRUE,
+				                ContarMes = 0, 2,    -- Años
+				                ContarMes <= 24, 1,  -- Mes
+				                0                    -- Dias
+				            )
+				        )
+				    )
+				RETURN
+				Resultado
+				```
+
+	annotation PBI_Id = 04d8028c716a4705a719aa1750786b96
+

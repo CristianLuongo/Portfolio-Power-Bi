@@ -1,0 +1,17 @@
+table 'Inicio Simulacion'
+	lineageTag: 71912a06-330b-4d10-bab4-bd2957451e26
+
+	column Fecha
+		dataType: dateTime
+		formatString: MMM yyyy
+		lineageTag: 81d67c96-6b69-41c6-8167-a8ca4ddf8adb
+		summarizeBy: none
+		sourceColumn: [Fecha]
+
+	partition 'Inicio Simulacion' = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    FILTER('Analisis Mensual', NOT ISBLANK('Analisis Mensual'[indicePrecios]) && NOT ISBLANK('Analisis Mensual'[dolar])),
+				    "Fecha", 'Analisis Mensual'[fecha])
+

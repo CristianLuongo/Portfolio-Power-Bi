@@ -1,0 +1,14 @@
+table 'Monto Inicial'
+	lineageTag: f4ec2057-518e-4dd4-b0ec-51f894691d75
+
+	column Monto
+		dataType: int64
+		formatString: "$ "#,0
+		lineageTag: 9143a83d-7e41-4f74-8eeb-7ddaef785430
+		summarizeBy: none
+		sourceColumn: [Monto]
+
+	partition 'Monto Inicial' = calculated
+		mode: import
+		source = SELECTCOLUMNS(GENERATESERIES(100000, 10000000, 100000), "Monto", [Value])
+

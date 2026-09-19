@@ -1,0 +1,48 @@
+table 'Eje X Dinamico'
+	lineageTag: e26e2195-2927-4ca4-bcfa-7b582a1e1218
+
+	column 'Eje X Dinamico'
+		lineageTag: 2d264508-6f33-4101-a97c-fd9a558c22b7
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Eje X Dinamico Orden'
+
+		relatedColumnDetails
+			groupByColumn: 'Eje X Dinamico Campos'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Eje X Dinamico Campos'
+		isHidden
+		lineageTag: e1f58960-bc07-4274-9b17-efc23747c69a
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Eje X Dinamico Orden'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Eje X Dinamico Orden'
+		formatString: 0
+		lineageTag: f54b96c3-a669-4969-a162-5dc553e8d80b
+		summarizeBy: none
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Eje X Dinamico' = calculated
+		mode: import
+		source =
+				{
+				    ("Fechas", NAMEOF('Calendario'[Fechas]), 0),
+				    ("Inicio del mes", NAMEOF('Calendario'[Inicio del mes]), 1),
+				    ("Año", NAMEOF('Calendario'[Año]), 2)
+				}
+
+	annotation PBI_Id = 47f5a01fa0ac4e37ab8633251a0ec094
+
